@@ -1,0 +1,16 @@
+<!-- A 'base' template for all other pages -->
+<!DOCTYPE html>
+<html>
+    <head>
+        <link rel="stylesheet" href="{{url_for('static', filename = 'css/main.css')}}" />  
+        {% block head %}{% endblock %}  
+    </head>
+    <body>
+        <div class="navbar">
+            <a class="navbar-brand" href="/">Symplist</a>
+            <a class="nav-button" href="login">Get Started</a>
+        </div>
+        <!-- Creates a simple navigation bar -->
+        {% block body %}{% endblock %}  
+    </body>
+</html>

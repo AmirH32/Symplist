@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+
+{% block head %}
+    <title>Register</title>
+    <link rel="stylesheet" href="{{url_for('static', filename = 'css/register.css')}}" />
+{% endblock %}
+
+{% block body %}
+    <div class="form-container">
+        <form action="#" method="POST">
+            <div class="row">
+                {{ form.hidden_tag()}}
+            </div>
+            <div class="row">
+                {{ form.Email (class_='input-form')}}
+            </div>
+            <div class="row">
+                {{ form.Password (class_='input-form')}}
+            </div>
+            <div class="row">
+                {{ form.confirm_Password (class_='input-form')}}
+            </div>          
+            <div class="row">
+                {{ form.Gender (class_='input-form')}}
+            </div>
+            <div class="row">
+                {{ form.FirstName (class_='input-form')}}
+            </div>
+            <div class="row">
+                {{ form.Surname (class_='input-form')}}
+            </div>
+            <div class="row">
+                {{ form.ContactNumber (class_='input-form')}}
+            </div>
+            <div class="row">
+                {{ form.Title (class_='input-form')}}
+            </div>
+            <div class="row">
+                {{ form.DateOfBirth (class_='input-form')}}
+            </div>
+            <div class="row">
+                {{ form.Postcode (class_='input-form')}}
+            </div>
+            <div class="row">
+                {{ form.Address (class_='input-form')}}
+            </div>
+            <div class="row">
+                {{ form.GeneralPractice (class_='input-form')}}
+            </div>
+            <div class="row">
+                {{ form.AccountType (class_='input-form')}}
+            </div>
+            <div class="row">
+                {{ form.Submit }}
+            </div>
+        </form>
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                {% for message in messages %}
+                <p class="Error">{{ message }}</p>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </div>
+
+{% endblock %}
+
