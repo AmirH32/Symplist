@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+
+{% block head %}
+<link rel="stylesheet" href="{{url_for('static', filename = 'css/research.css')}}" />
+{% endblock %}
+
+{% block body %}
+<div class="container">
+    <div class="container-1">
+        <p class="Container-title">Condition Search</p>
+        <form action="" method="POST">
+            {{ Condition_form.hidden_tag()}}
+            {{ Condition_form.ConditionName (class_='input-form')}}
+            {{ Condition_form.Submit }}
+        </form>
+        {% if Corrected_Condition %}
+                <p class="Suggestion">Did you mean <a href="./research?Condition={{Corrected_Condition}}">{{Corrected_Condition}}</a></p>
+        {% endif %}
+        <div class="condition-container">
+            <div class="row-2">
+            {% if Primary_names%}
+                {% for i in Primary_names  %}
+                    <div class="row">
+                        <p>Primary name: {{i}}</p>
+                        <p>Consumer name: {{Consumer_names[loop.index0]}}</p>
+                        <p>Find out more about {{i}} <a href={{Condition_links[loop.index0]}}>here</a></p>
+                    </div>
+                {% endfor %}
+
+            {% elif first_visit != True%}
+                <h3>No results</h3>
+            {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="container-2">
+        <p class="Container-title">Treatment Search</p>
+        <form action="" method="POST">
+            {{ Treatmentform.hidden_tag()}}
+            {{ Treatmentform.TreatmentName (class_='input-form')}}
+            {{ Treatmentform.Submit }}
+        </form>
+        {% if Corrected_treatment %}
+                <p class="Suggestion">Did you mean <a href="./research/condition/{{Corrected_Condition}}?returnto='/research'">{{Corrected_treatment}}</a></p>
+        {% endif %}
+        <div class="condition-container">
+            <div class="row-2">
+            {% if Primary_names%}
+                {% for i in Primary_names  %}
+                    <div class="row">
+                        <p>Primary name: {{i}}</p>
+                        <p>Consumer name: {{Consumer_names[loop.index0]}}</p>
+                        <p>Find out more about {{i}} <a href={{Condition_links[loop.index0]}}>here</a></p>
+                    </div>
+                {% endfor %}
+
+            {% elif first_visit != True%}
+                <h3>No results</h3>
+            {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
