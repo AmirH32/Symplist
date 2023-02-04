@@ -1,4 +1,4 @@
-.error{
+.Error{
     color: red;
     font-size: small;
 }
@@ -8,5 +8,54 @@
     border-radius: 20px;
     height: 800px;
     width: 50%;
+    padding: 20px;
     margin: 50px auto 0 auto;
+    display: flex;
 }
+
+.col-25 {
+    float: left;
+    width: 150px;
+    text-align: left;
+    height:40px;
+    margin-top: 5px;
+    margin-right: 10px;
+    color: red;
+  }
+  
+.col-75 {
+    float: right;
+    width: 250px;
+    height: 40px;
+    margin-top: 5px;
+}
+
+
+input[type=text],input[type=password],input[type=email], select, textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    resize: vertical;
+    line-height: 16px;
+}
+
+label {
+    color: black;
+    height: 41.3px;
+}
+
+input[type=submit] {
+background-color: #0400ff;
+color: white;
+padding: 12px 20px;
+border: none;
+border-radius: 4px;
+cursor: pointer;
+float: right;
+}
+
+input[type=submit]:hover {
+background-color: #4855e3;
+}
+  
