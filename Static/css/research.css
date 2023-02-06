@@ -54,6 +54,10 @@ a {
     overflow-x:hidden;
 }
 
+.Treatment-headings{
+    text-decoration: underline;
+}
+
 form{
     height: fit-content;
     margin:15px 0px 15px 0px;
