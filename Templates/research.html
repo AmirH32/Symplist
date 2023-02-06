@@ -10,7 +10,7 @@
         <p class="Container-title">Condition Search</p>
         <form action="" method="POST">
             {{ Condition_form.hidden_tag()}}
-            {{ Condition_form.ConditionName (class_='input-form')}}
+            {{ Condition_form.Condition_Name (class_='input-form')}}
             {{ Condition_form.Submit }}
         </form>
         {% if Corrected_Condition %}
@@ -27,7 +27,8 @@
                     </div>
                 {% endfor %}
 
-            {% elif first_visit != True%}
+            {% elif first_Condition_visit != True%}
+            <!-- If it's not the first visit to the page and there is no data from the API, no results is returned -->
                 <h3>No results</h3>
             {% endif %}
             </div>
@@ -36,25 +37,30 @@
     <div class="container-2">
         <p class="Container-title">Treatment Search</p>
         <form action="" method="POST">
-            {{ Treatmentform.hidden_tag()}}
-            {{ Treatmentform.TreatmentName (class_='input-form')}}
-            {{ Treatmentform.Submit }}
+            {{ Treatment_form.hidden_tag()}}
+            {{ Treatment_form.Treatment_Name (class_='input-form')}}
+            {{ Treatment_form.Submit }}
         </form>
-        {% if Corrected_treatment %}
-                <p class="Suggestion">Did you mean <a href="./research/condition/{{Corrected_Condition}}?returnto='/research'">{{Corrected_treatment}}</a></p>
+        {% if Corrected_Treatment %}
+                <p class="Suggestion">Did you mean <a href="./research?Treatment={{Corrected_Treatment}}">{{Corrected_Treatment}}</a></p>
         {% endif %}
         <div class="condition-container">
             <div class="row-2">
-            {% if Primary_names%}
-                {% for i in Primary_names  %}
-                    <div class="row">
-                        <p>Primary name: {{i}}</p>
-                        <p>Consumer name: {{Consumer_names[loop.index0]}}</p>
-                        <p>Find out more about {{i}} <a href={{Condition_links[loop.index0]}}>here</a></p>
-                    </div>
+            {% if Treatment_Data%}
+                {% for key, value in Treatment_Data.items() %}
+                    {% if key == 'Generic_Name' %}
+                        <p>Generic_Name: {{value}}}</p>
+                    {% elif key == 'Substance_Name' %}
+                        <p>Substance Name: {{value}}</p>
+                    {% else %}
+                        <div class="row">
+                            <h3 class="Treaatment-headings">{{key}}</h3>
+                            <p>{{value}}</p>
+                        </div>
+                    {% endif %}
                 {% endfor %}
 
-            {% elif first_visit != True%}
+            {% elif first_Treatment_visit != True%}
                 <h3>No results</h3>
             {% endif %}
             </div>
