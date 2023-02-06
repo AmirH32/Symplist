@@ -5,6 +5,7 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import relationship
 from flask_login import UserMixin, LoginManager,login_user, logout_user, login_required
+from flask_rbac import RBAC, RoleMixin
 from flask_wtf import FlaskForm
 from wtforms import EmailField, PasswordField, SubmitField, EmailField, SelectField, StringField, DateField
 from wtforms.validators import InputRequired, Email, Length, ValidationError
@@ -20,11 +21,13 @@ app = Flask(__name__)
 # Creates an instance of the bcrypt object - allowing for password encryption and hashing
 bcrypt = Bcrypt(app)
 
+rbac = RBAC(app)
+
 
 # Sets an encryption key for the flask framework
 app.config['SECRET_KEY'] = 'N`5z!B}4uftw=w$S)}6=p(PVZ`:VN*m'
 # Sets a location and file for the database
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database1.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
 
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -45,6 +48,12 @@ with app.app_context():
 
 # Creates a class for each table entity in the database (object relation mapping)
 
+roles_users = db.Table('roles_users',
+                        db.Column('user_id', db.Integer,
+                        db.ForeignKey('user.UserID')),
+                        db.Column('role_id', db.Integer,
+                        db.ForeignKey('role.id')))
+
 
 class User(db.Model, UserMixin):
     UserID = db.Column(db.Integer, primary_key=True)
@@ -59,10 +68,35 @@ class User(db.Model, UserMixin):
     Postcode = db.Column(db.String(64), nullable=False)
     Address = db.Column(db.String(64), nullable=False)
     General_Practice = db.Column(db.String(64), nullable=False) 
-    Account_Type = db.Column(db.String(32), nullable=False)
+    roles = db.relationship('Role', secondary=roles_users, backref=db.backref('users'), lazy='joined')
 
     def get_id(self):
         return self.UserID
+    
+    def add_role(self, role):
+        self.roles.append(role)
+
+rbac.set_user_model(User)
+    
+
+class Role(db.Model, RoleMixin):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(16), unique=True)
+
+rbac.set_role_model(Role)   
+
+
+class Appointments(db.Model):
+    AppointmentID = db.Column(db.Integer, primary_key=True)
+    DoctorID = db.Column(db.Integer, db.ForeignKey('user.UserID'), nullable = False)
+    Doctor = relationship("User", foreign_keys=[DoctorID], backref="Doctors")
+    PatientID = db.Column(db.Integer, db.ForeignKey('user.UserID'), nullable = False)
+    Patient = relationship("User", foreign_keys=[PatientID], backref="Patients")
+    Date = db.Column(db.Date(), nullable=False)
+    Time = db.Column(db.DateTime, nullable=False)
+
+
+
 
 
 ### End of models
@@ -153,7 +187,6 @@ def Autocorrect(string):
 
 def GetConditionInfo(Condition):
     Response = requests.get(f" https://clinicaltables.nlm.nih.gov/api/conditions/v3/search?terms={Condition}&df=primary_name,consumer_name,info_link_data").json()
-    print(Response)
     Primary_names = []
     Consumer_names = []
     Condition_links = []
@@ -171,7 +204,6 @@ def GetConditionInfo(Condition):
 def Get_Generic_name_Response(Generic_Name):
         try:
             Response = requests.get(f"https://api.fda.gov/drug/label.json?search=openfda.generic_name:{Generic_Name}")
-            print(Response)
             Treatment_Data = Get_Treatment_Data(Response.json())
             return Treatment_Data
         except:
@@ -186,7 +218,6 @@ def Get_Generic_name_Response(Generic_Name):
 def Get_Brand_Name_Response(Brand_Name):
     try:
         Response =  requests.get(f"https://api.fda.gov/drug/label.json?search=openfda.brand_name:{Brand_Name}")
-        print(Response)
         Treatment_Data = Get_Treatment_Data(Response.json())
         return Treatment_Data
     except:
@@ -201,7 +232,6 @@ def Get_Brand_Name_Response(Brand_Name):
 def Get_Substance_Name_Response(Substance_Name):
     try:
         Response =  requests.get(f"https://api.fda.gov/drug/label.json?search=openfda.substance_name:{Substance_Name}")
-        print(Response)
         Treatment_Data = Get_Treatment_Data(Response.json())
         return Treatment_Data
     except:
@@ -270,7 +300,8 @@ def register():
         if password == confirm_password:
             Input_data = form.Get_Input_Data()
             # All data from the from is retrieved from the POST method
-            new_User = User(Email=Input_data['Email'], Password=Input_data['Password'], Gender=Input_data['Gender'], First_Name=Input_data['First_Name'], Surname=Input_data['Surname'], Contact_Number=Input_data['Contact_Number'], Title=Input_data['Title'], Date_Of_Birth=Input_data['Date_Of_Birth'], Postcode=Input_data['Postcode'], Address=Input_data['Address'], General_Practice=Input_data['General_Practice'], )
+            new_User = User(Email=Input_data['Email'], Password=Input_data['Password'], Gender=Input_data['Gender'], First_Name=Input_data['First_Name'], Surname=Input_data['Surname'], Contact_Number=Input_data['Contact_Number'], Title=Input_data['Title'], Date_Of_Birth=Input_data['Date_Of_Birth'], Postcode=Input_data['Postcode'], Address=Input_data['Address'], General_Practice=Input_data['General_Practice'])
+            new_User.add_role(Role(name=Input_data['Account_Type']))
             db.session.add(new_User)
             db.session.commit()
             # A User object is instantiated with the data retrieved before being added and commited to the database
@@ -337,6 +368,7 @@ def research():
             Corrected_Treatment = None
         
         Treatment_Data = Get_Generic_name_Response(Treatment)
+        print(Treatment_Data)
         return render_template('research.html', Treatment_form=Treatment_form, Condition_form=Condition_form, Treatment_Data = Treatment_Data, Corrected_Treatment = Corrected_Treatment, first_Condition_visit = True)
     
     elif Treatment != None:
