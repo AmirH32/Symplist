@@ -14,7 +14,7 @@ a {
     margin: 50px auto 0 auto;
     padding: 20px;
     display: flex;
-    height: 75%;
+    height: fit-content;
 }
 
 .container-1{
