@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+{% block head %}
+    <link rel="stylesheet" href="{{url_for('static', filename = 'css/calendar.css')}}" />  
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.1/index.global.min.js'></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.4.0/fullcalendar.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.18.1/moment.min.js"></script>
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+            var calendarEl = document.getElementById('calendar');
+            var calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'dayGridMonth',
+            dayMaxEventRows:true,
+            nowIndicator: true,
+            now: $.now(),
+            headerToolbar: {
+            left: 'prev,next today',
+            center: 'title',
+            right: 'dayGridMonth,timeGridWeek,timeGridDay'
+            },
+            events: [{% for appointment in pending_appointments %}{ id : '{{appointment.AppointmentID}}', 
+                {% if current_user.UserID == appointment.PatientID %}
+                    title : 'Pending',
+                    color : 'orange'
+                {% else %}
+                    title : 'Unavailable - pending',
+                    color : 'red'
+                {% endif %}, 
+                start : '{{appointment.Start_Date}}', 
+                end : '{{appointment.End_Date}}', 
+                display: 'block',}, 
+            {% endfor %}{% for appointment in booked_appointments%}{ id : '{{appointment.AppointmentID}}',
+                {% if current_user.UserID == appointment.PatientID %}
+                    title : "Booked with {{Doctor_info[loop.index0][1]}}.{{Doctor_info[loop.index0][0]}}",
+                    color : 'green'
+                {% else %}
+                    title : 'Unavailable - booked',
+                    color : 'grey'
+                {% endif %}, 
+                start : '{{appointment.Start_Date}}', 
+                end : '{{appointment.End_Date}}', 
+                display: 'block',}, 
+            {% endfor %}],
+            selectable:true,
+            selectHelper:true,
+            selectOverlap:false,
+
+
+            dateClick: function(Info)
+            {
+                if(Info.date.setHours(0, 0, 0, 0) >= new Date().setHours(0, 0, 0, 0) ){
+                    if(confirm("Are you sure you want an appointment on "+Info.dateStr+"?")){
+                        var date = Info.date
+                        var current_user_ID = {{ current_user.UserID }}
+                        $.ajax({
+                            url:"/Add_Appointment",
+                            type:"POST",
+                            data:{date:date, current_user_ID:current_user_ID},
+                            success:function(data)
+                            {
+                                //alert
+                                alert("Added Successfully")
+                                window.location.replace("/Booking")
+                            }
+                        })
+                    }
+                }
+            },
+
+            eventClick: function(eventClickInfo ){
+                // Can put an if in here to see if the event is booked or not
+                if(eventClickInfo.event.title=='Pending'||eventClickInfo.event.title.includes("Booked with")){
+                    if(confirm("Are you sure you want to cancel this appointment?")){
+                        var id = eventClickInfo.event.id
+                        $.ajax({
+                            url:"/Delete_Appointment",
+                            type:"POST",
+                            data:{id:id},
+                            success:function(){
+                                alert("Event removed");
+                                window.location.replace("/Booking") 
+                            }
+                        })
+                    }
+                }
+            }
+            
+            });
+            calendar.render();
+        });
+    </script>
+{% endblock %}
+{% block body %}
+    <div class="container">
+        <div id='calendar'></div>
+    </div>
+{% endblock %}
+
+
+
+
+
+
+
+
