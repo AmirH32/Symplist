@@ -17,11 +17,16 @@
                 <a class="nav-button" href="login">Get Started</a>
             {% endif %}
             <a class="nav-heading" href="/research">Research</a>
+            <a class="nav-heading" href="/studies">Studies</a>
             {% if current_user.is_authenticated %}
-                <a class="nav-heading" href="">Booking</a>
+                <a class="nav-heading" href="/messages">Messages</a>
+                {% if role.name == 'Patient' %}
+                    <a class="nav-heading" href="/Booking">Booking</a>
+                {% elif role.name == 'Doctor' %}     
+                    <a class="nav-heading" href="/Appointments">Appointments</a>
+                {% endif %}
             {% endif %}
         </div>
         <!-- Creates a simple navigation bar -->
-        {% block body %}{% endblock %}  
-    </body>
-</html>
+        {% block body %}{% endblock %} 
+        
