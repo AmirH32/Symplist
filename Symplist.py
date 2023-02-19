@@ -1,6 +1,6 @@
 # Imports all the required libraries
 import requests, json
-from flask import Flask, render_template, redirect, url_for, flash, request
+from flask import Flask, render_template, redirect, url_for, flash, request, session
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import relationship
@@ -11,6 +11,9 @@ from wtforms import EmailField, PasswordField, SubmitField, EmailField, SelectFi
 from wtforms.validators import InputRequired, Email, Length, ValidationError
 from flask_bcrypt import Bcrypt
 from autocorrect import Speller
+from datetime import datetime, timedelta
+import xml.etree.ElementTree as ET
+import time
 
 # Creates an instance of the Flask object 
 app = Flask(__name__)
@@ -56,7 +59,7 @@ roles_users = db.Table('roles_users',
 
 
 class User(db.Model, UserMixin):
-    UserID = db.Column(db.Integer, primary_key=True)
+    UserID = db.Column(db.Integer, primary_key=True, unique = True)
     Email = db.Column(db.String(256), nullable=False, unique=True)
     Password = db.Column(db.String(128), nullable=False)
     Gender = db.Column(db.String(1), nullable=False)
@@ -68,32 +71,42 @@ class User(db.Model, UserMixin):
     Postcode = db.Column(db.String(64), nullable=False)
     Address = db.Column(db.String(64), nullable=False)
     General_Practice = db.Column(db.String(64), nullable=False) 
-    roles = db.relationship('Role', secondary=roles_users, backref=db.backref('users'), lazy='joined')
+    roles = db.relationship('Role', secondary='roles_users', backref=db.backref('users'), lazy='joined')
 
     def get_id(self):
         return self.UserID
     
-    def add_role(self, role):
-        self.roles.append(role)
+    def add_role(self, name):
+        roles = Role.query.all()
+        for role in roles:
+            if name == role.name:
+                self.roles.append(role)
 
 rbac.set_user_model(User)
-    
+
 
 class Role(db.Model, RoleMixin):
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True, unique=True)
     name = db.Column(db.String(16), unique=True)
+
+    def __init__(self, name):
+        RoleMixin.__init__(self)
+        self.name = name    
+
+    @staticmethod
+    def get_by_name(name):
+        return Role.query.filter_by(name=name).first()
 
 rbac.set_role_model(Role)   
 
-
 class Appointments(db.Model):
-    AppointmentID = db.Column(db.Integer, primary_key=True)
-    DoctorID = db.Column(db.Integer, db.ForeignKey('user.UserID'), nullable = False)
+    AppointmentID = db.Column(db.Integer, primary_key=True, nullable=False, unique=True)
+    DoctorID = db.Column(db.Integer, db.ForeignKey('user.UserID'))
     Doctor = relationship("User", foreign_keys=[DoctorID], backref="Doctors")
     PatientID = db.Column(db.Integer, db.ForeignKey('user.UserID'), nullable = False)
     Patient = relationship("User", foreign_keys=[PatientID], backref="Patients")
-    Date = db.Column(db.Date(), nullable=False)
-    Time = db.Column(db.DateTime, nullable=False)
+    Start_Date = db.Column(db.DateTime(), nullable=False)
+    End_Date = db.Column(db.DateTime(), nullable=False) 
 
 
 
@@ -173,9 +186,14 @@ class TreatmentForm(FlaskForm):
     Treatment_Name = StringField(label='Medicine', validators=[InputRequired("Enter the treatment"), Length(min=1,max=256)], render_kw={"placeholder" : "Search Treatments..."})
     Submit = SubmitField("Search")
 
+class StudiesForm(FlaskForm):
+    Study_Topic = StringField(label='Medicine', validators=[InputRequired("Enter the treatment"), Length(min=1,max=256)], render_kw={"placeholder" : "Search Studies..."})
+    Submit = SubmitField("Search")
+
     
 
 ### End of Forms
+
 
 
 def Autocorrect(string):
@@ -255,15 +273,71 @@ def Get_Treatment_Data(Response):
         Treatment_Data = None
     return Treatment_Data
 
+def Get_Appointments_Doctor_Info():
+    pending_appointments =  Appointments.query.filter_by(DoctorID=None)
+    booked_appointments = Appointments.query.filter(Appointments.DoctorID !=None)
+    Doctor_info = []
+    for appointment in booked_appointments:
+        user = User.query.filter_by(UserID=appointment.DoctorID).first()
+        Doctor_info.append([user.Surname,user.Title])
+    return pending_appointments, booked_appointments, Doctor_info
+
+def Get_Appointments_Patient_Info():
+    pending_appointments =  Appointments.query.filter_by(DoctorID=None)
+    booked_appointments = Appointments.query.filter(Appointments.DoctorID !=None)
+    Patient_info = []
+    for appointment in booked_appointments:
+        user = User.query.filter_by(UserID=appointment.PatientID).first()
+        Patient_info.append([user.Surname,user.Title])
+    return pending_appointments, booked_appointments, Patient_info
+
+def get_study_data(Study_Topic):
+    IDs = []
+    Response = requests.get(f"https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed&term=science[journal]+AND+{Study_Topic}")
+    response_xml_as_string = Response.content
+    responseXml = ET.fromstring(response_xml_as_string)
+    testId = responseXml.find('IdList')
+    Studies = []
+    for ID in testId:
+        IDs.append(ID.text)
+
+    for ID in IDs:
+        Response = requests.get(f"https://www.ncbi.nlm.nih.gov/pmc/utils/idconv/v1.0?tool=my_tool&email=amirhassanali2610@gmail.com.com&ids={ID}")
+        response_xml_as_string = Response.content
+        responseXml = ET.fromstring(response_xml_as_string)
+        try:
+            pmcid = responseXml[1].attrib['pmcid']
+            time.sleep(2)
+            response = requests.get(f"https://www.ncbi.nlm.nih.gov/research/bionlp/RESTful/pmcoa.cgi/BioC_json/{pmcid}/unicode").json()
+            Studies.append([response['documents'][0]['passages'], pmcid])
+        except:
+            print('no pmcid')
+
+    return Studies
+
 
 
 ### Views
 
+@app.context_processor
+def inject_role():
+    try:
+        user_ID = session["_user_id"]
+        role = db.session.query(Role).join(roles_users, User).filter(User.UserID == user_ID).first()
+    except:
+        role = None
+    return dict(role=role, message='hello')
 
 @app.route('/')
 def Index():
-    return render_template('index.html')
+    try:
+        user_ID = session["_user_id"]
+        role = db.session.query(Role).join(roles_users, User).filter(User.UserID == user_ID).first()
+    except:
+        role = None
+    return render_template('index.html',role=role)
 # Renders the index page if the url is '/'
+
 
 
 
@@ -301,7 +375,8 @@ def register():
             Input_data = form.Get_Input_Data()
             # All data from the from is retrieved from the POST method
             new_User = User(Email=Input_data['Email'], Password=Input_data['Password'], Gender=Input_data['Gender'], First_Name=Input_data['First_Name'], Surname=Input_data['Surname'], Contact_Number=Input_data['Contact_Number'], Title=Input_data['Title'], Date_Of_Birth=Input_data['Date_Of_Birth'], Postcode=Input_data['Postcode'], Address=Input_data['Address'], General_Practice=Input_data['General_Practice'])
-            new_User.add_role(Role(name=Input_data['Account_Type']))
+            # Role instantiation
+            new_User.add_role(Input_data['Account_Type'])
             db.session.add(new_User)
             db.session.commit()
             # A User object is instantiated with the data retrieved before being added and commited to the database
@@ -368,7 +443,6 @@ def research():
             Corrected_Treatment = None
         
         Treatment_Data = Get_Generic_name_Response(Treatment)
-        print(Treatment_Data)
         return render_template('research.html', Treatment_form=Treatment_form, Condition_form=Condition_form, Treatment_Data = Treatment_Data, Corrected_Treatment = Corrected_Treatment, first_Condition_visit = True)
     
     elif Treatment != None:
@@ -384,17 +458,99 @@ def research():
         
     return render_template('research.html', Treatment_form=Treatment_form, Condition_form=Condition_form, first_Treatment_visit=True, first_Condition_visit = True)
 
-
-@app.route("/booking", methods=['POST', 'GET'])
+# @rbac.allow(['Doctor'], methods=['POST, GET'])
+@app.route("/Booking", methods=['POST', 'GET'])
 def booking():
-    return render_template('booking.html')
+    pending_appointments, booked_appointments, Doctor_info = Get_Appointments_Doctor_Info()
+    return render_template('booking.html', pending_appointments=pending_appointments, booked_appointments=booked_appointments, Doctor_info=Doctor_info)
+    
 
+@app.route("/Add_Appointment", methods=['POST']) 
+def insert_appointment():
+    if request.method == 'POST':
+        date = request.form['date'].split(" (",1)[0]
+        user_ID = request.form['current_user_ID']
+        date_datetime = datetime.strptime(date, '%a %b %d %Y %H:%M:%S %Z%z')
+        new_Appointment = Appointments(PatientID=user_ID, Start_Date=date_datetime, End_Date=date_datetime + timedelta(days=1) )
+        db.session.add(new_Appointment)
+        db.session.commit()
+        return redirect(url_for('booking'))
+    
+@app.route("/Delete_Appointment", methods=['POST']) 
+def delete_appointment():
+    if request.method == 'POST':
+        AppointmentID = request.form['id']
+        Appointments.query.filter_by(AppointmentID=AppointmentID).delete()
+        db.session.commit()
+        return redirect(url_for('booking'))
 
+@app.route("/Appointments") 
+def View_appointments():
+    pending_appointments, booked_appointments, Patient_info = Get_Appointments_Patient_Info()
+    return render_template('appointments.html', pending_appointments=pending_appointments, booked_appointments=booked_appointments, Patient_info = Patient_info)
 
-### End of Views
+@app.route("/take_appointment", methods=['POST']) 
+def take_appointment():
+    if request.method == 'POST':
+        AppointmentID = request.form['id']
+        Appointment =  Appointments.query.filter_by(AppointmentID=AppointmentID).first()
+        Appointment.DoctorID = session["_user_id"]
+        db.session.commit()
+        return redirect(url_for('View_appointments'))
+    
+@app.route("/Update_Appointment", methods=['POST']) 
+def Update_Appointment():
+    if request.method == 'POST':
+        AppointmentID = request.form['Appointment_ID']
+        start_date = request.form['start_date'].split(" (",1)[0]
+        end_date = request.form['end_date'].split(" (",1)[0]
+        start_datetime = datetime.strptime(start_date, '%a %b %d %Y %H:%M:%S %Z%z')
+        end_datetime = datetime.strptime(end_date, '%a %b %d %Y %H:%M:%S %Z%z')
+        print(start_datetime)
+        Appointment =  Appointments.query.filter_by(AppointmentID=AppointmentID).first()
+        Appointment.Start_Date = start_datetime
+        Appointment.End_Date = end_datetime
+        db.session.commit()
+        return redirect(url_for('View_appointments'))
+    
+@app.route("/studies", methods=['GET','POST']) 
+def Studies():
+    Study_Topic = request.args.get('Study')
+    pmcid = request.args.get('pmcid')
+    Studies_Form = StudiesForm()
+
+    if Studies_Form.validate_on_submit():
+        Study_Topic = Studies_Form.Study_Topic.data
+        Corrected_Study = Autocorrect(Study_Topic)
+
+        if Corrected_Study == Study_Topic:
+            Corrected_Study = None
+
+        Studies = get_study_data(Study_Topic)
+        return render_template('studies.html', Corrected_Study = Corrected_Study, Studies_Form = Studies_Form, Studies=Studies)
+
+    elif Study_Topic !=None:
+        Corrected_Study = Autocorrect(Study_Topic)
+        if Corrected_Study == Study_Topic:
+            Corrected_Study = None
+
+        Studies = get_study_data(Study_Topic)
+        return render_template('studies.html', Corrected_Study = Corrected_Study, Studies_Form = Studies_Form, Studies=Studies)
+
+    elif pmcid != None:
+        response = requests.get(f"https://www.ncbi.nlm.nih.gov/research/bionlp/RESTful/pmcoa.cgi/BioC_json/{pmcid}/unicode").json()
+        study_content = response['documents'][0]['passages']
+        return render_template('study.html',study_content=study_content)
+
+    return render_template('studies.html',Studies_Form = Studies_Form)
+
+@app.route("/messages", methods=['GET']) 
+def messages():
+    return render_template('messages.html')
+
 
 if __name__=='__main__':
-    app.run(debug=True)
+    app.run(host="0.0.0.0", debug=True)
 
 # from Symplist import app, db
 # app.app_context().push()
