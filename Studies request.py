@@ -1,5 +1,6 @@
 import requests, json
 import xml.etree.ElementTree as ET
+import time
 
 
 IDs = []
@@ -17,9 +18,8 @@ for i in IDs:
     responseXml = ET.fromstring(response_xml_as_string)
     try:
         pmcid = responseXml[1].attrib['pmcid']
-        print(pmcid)
-        response = requests.get(f"https://www.ncbi.nlm.nih.gov/research/bionlp/RESTful/pmcoa.cgi/BioC_json/{'PMC9127978'}/unicode").json()
-        print(response)
+        response = requests.get(f"https://www.ncbi.nlm.nih.gov/research/bionlp/RESTful/pmcoa.cgi/BioC_json/{pmcid}/unicode").json()
+        time.sleep(1.5)
         for i in response['documents'][0]['passages']:
             print(i['text'])
 
