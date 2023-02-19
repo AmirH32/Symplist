@@ -2,6 +2,8 @@ body{
   margin:0;
   background: rgb(58,66,199);
   background: linear-gradient(90deg, rgba(58,66,199,1) 17%, rgba(21,112,219,1) 100%);
+  /* background: rgb(14,13,121);
+  background: linear-gradient(90deg, rgba(14,13,121,1) 17%, rgba(14,2,48,1) 100%); */
   color: white;
   height: 100vh;
   font-family: 'Montserrat', sans-serif;
@@ -79,3 +81,4 @@ body{
 .Content{
     margin: 100%;
 }
+
