@@ -62,7 +62,7 @@
                                 window.location.replace("/appointments") 
                                 // Refreshes the page 
                             },
-                            error:function(XMLHttpRequest, textStatus, errorThrown){
+                            error:function(){
                                 alert("Error encountered")
                                 // If an error is encountered, alert the user of this
                             }
@@ -85,7 +85,7 @@
                                 window.location.replace("/appointments") 
                                 // Refresh the page
                             },
-                            error:function(XMLHttpRequest, textStatus, errorThrown){
+                            error:function(){
                                 alert("Error encountered")
                                 // If an error is encountered, alert the user of this
                             }
@@ -123,7 +123,7 @@
                                 alert("Appointment Updated Successfully")
                                 // If the POST was successful alerts the user that the appointment has been update successfully
                             },
-                            error:function(XMLHttpRequest, textStatus, errorThrown){
+                            error:function(){
                                 eventResizeInfo.revert()
                                 alert("Error encountered")
                                 // If an error is encountered, alert the user of this and resize the event for the user
@@ -160,7 +160,7 @@
                                     alert("Appointment Updated Successfully")
                                     // If the POST was successful alerts the user that the appointment has been update successfully
                                 },
-                                error:function(XMLHttpRequest, textStatus, errorThrown){
+                                error:function(){
                                     eventDropInfo.revert()
                                     // If an error is encountered, alert the user of this
                                     alert("Error encountered")
