@@ -1,0 +1,38 @@
+<!-- A 'base' template for all other pages -->
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="{{url_for('static', filename = 'css/main.css')}}" />  
+        {% block head %}{% endblock %}  
+    </head>
+    <body>
+        <div class="navbar">
+            <a class="navbar-brand" href="/">Symplist</a>
+            {% if current_user.is_authenticated %}
+            <!-- If the user is authenticated present a log out button -->
+                <a class="nav-button" href="/logout">Log Out</a>
+            {% else %}
+                <a class="nav-button" href="login">Get Started</a>
+            {% endif %}
+            <a class="nav-heading" href="/research">Research</a>
+            <a class="nav-heading" href="/studies">Studies</a>
+            {% if current_user.is_authenticated %}
+                {% if role.Role_Name == 'Patient' %}
+                    <a class="nav-heading" href="/booking">Booking</a>
+                    <a class="nav-heading" href="/patient_conversations">Messages</a>
+                    <a class="nav-heading" href="/view_records/{{current_user.UserID}}">My Prescriptions & Referrals</a>
+                    <!-- If the current user is a patient present these links -->
+                {% elif role.Role_Name == 'Doctor' %}     
+                    <a class="nav-heading" href="/doctor_conversations">Messages</a>
+                    <a class="nav-heading" href="/appointments">Appointments</a>
+                    <a class="nav-heading" href="/prescriptions_referrals_doctors">Prescriptions & Referrals</a>
+                    <!-- If the current user is a Doctor present these tabs -->
+                {% endif %}
+            {% endif %}
+        </div>
+        <!-- Creates a simple navigation bar -->
+        {% block body %}{% endblock %} 
+        

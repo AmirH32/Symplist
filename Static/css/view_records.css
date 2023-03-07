@@ -1,0 +1,69 @@
+body{
+    color: black;
+}
+
+.container{
+    background-color: white;
+    width: 75%;
+    border-radius: 20px;
+    margin: 50px auto 0 auto;
+    padding: 20px;
+    display: flex;
+    height: fit-content;
+}
+
+.container-1{
+    width: 45%;
+}
+
+.container-2{
+    width: 45%;
+    margin-left: auto;
+}
+
+.Container-title{
+    text-align: center;
+    font-size: large;
+    margin-bottom: 10px;
+}
+
+.prescription-container, .referral-container{
+    height: 340px;
+    border: 3px solid grey;
+    overflow: auto;
+    overflow-x:hidden;
+}
+
+.row{
+    flex-wrap: wrap;
+    display: flex;
+    flex-direction: column;
+    border-bottom:  3px solid black;
+    padding-bottom: 5px;
+    font-size: small;
+    width: 100%;
+}
+
+.head{
+    display:flex;
+    flex-direction: row;
+    margin-left: 10px;
+}
+
+.head-title{
+    width: 50%;
+    margin-right: 0px;
+    margin-bottom: 0;
+}
+
+.date {
+    text-align: right;
+    margin-left: auto;
+    margin-right: 10px;
+    margin-bottom: 0;
+}
+
+.body{
+    margin-left: 10px;
+}
+

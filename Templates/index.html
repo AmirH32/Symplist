@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+
+{% block head %}
+    <title>Symplist</title>
+    <link rel="stylesheet" href="{{url_for('static', filename = 'css/index.css')}}" /> 
+{% endblock %}
+
+{% block body %}
+    {% if current_user.is_authenticated  %}
+    <!-- Checks the user is authenticated (logged in) -->
+        {% if role %}
+            <p class="heading">Welcome {{ current_user.First_Name }}, </p>
+            <p class="body">Role: {{role.Role_Name}}</p>
+        <!-- If role exists, display the user's first name and role --> 
+        {% endif %}
+    {% else %}
+        <p class="heading">Welcome to Symplist,</p>  
+        <p class="body">Where your health matters</p>
+    {% endif %}
+    <img src="{{url_for('static', filename = 'Images/Logo.png')}}" alt="Logo" />
+    <div class="content">
+        
+    </div>
+{% endblock %}

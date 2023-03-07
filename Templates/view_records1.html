@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+
+{% block head %}
+    <title>Records</title>
+    <link rel="stylesheet" href="{{url_for('static', filename = 'css/view_records1.css')}}" />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.3/jquery.min.js"></script>   
+    <script>
+        $(document).ready(function(){
+
+            $('.referal-button').click(function(){
+                let x = "."+ $('.referal-button').attr('id')
+                $(".referal-"+ $(this).attr('id')).css("display","block"); 
+            })
+
+            $('.prescription-button').click(function(){
+                let x = "."+ $('.prescription-button').attr('id')
+                $("."+ $(this).attr('id')).css("display","block");  
+            })
+
+            $('.details-close').click(function(){
+                $(".details").css("display","none");
+            })
+
+
+            window.onclick = function(event) {
+                if (event.target.className.includes("details r")) {
+                    $(event.target).css("display","none")
+                } else if(event.target.className.includes("details")){
+                    $(event.target).css("display","none")
+                }
+            }
+        })
+    </script>
+{% endblock %}
+
+{% block body %}
+<div class="container">
+    <div class="container-1">
+        <p class="Container-title">Prescriptions</p>
+        <div class="prescription-container">
+            {% if prescriptions %}
+                {% for prescription in prescriptions %}
+                    <div class="row">
+                        <p>Prescription No.{{ prescriptions | count - loop.index0 }}</p>
+                        <p class="date"> {{ prescription.Date.strftime("%d-%m-%Y %H:%M") }} </p>
+                        <button class="prescription-button" id="{{prescription.PrescriptionID}}">View Details</button>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p>No prescriptions.</p>
+            {% endif %}
+        </div>
+    </div>
+    <div class="container-2">
+        <p class="Container-title">Referals</p>
+        <div class="referral-container">
+            {% if referrals %}
+                {% for referal in referrals %}
+                    <div class="row">
+                        <p>Referal No.{{ referrals | count - loop.index0 }}</p>
+                        <p class="date"> {{ referal.Date.strftime("%d-%m-%Y %H:%M") }} </p>
+                        <button class="referal-button" id="{{referal.ReferralID}}">View Details</button>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p>No Referrals.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% for prescription in prescriptions %}
+    <div class="details {{ prescription.PrescriptionID }}">
+        <div class="content">
+        <div class="header">
+            <span class="details-close">&times;</span>
+            <h2>Prescription details</h2>
+        </div>
+        <div class="body">
+            <p>Treatment: {{prescription.Treatment}}</p>
+            <p>Dosage: {{prescription.Dosage}}</p>
+            <p>Frequency: {{prescription.Frequency}}</p>
+            <p>Date: {{prescription.Date.strftime("%d-%m-%Y %H:%M")}}</p>
+        </div>
+        </div>
+    </div>
+{%  endfor %}
+
+{% for referal in referrals %}
+    <div class="details referal-{{ referal.ReferralID }}">
+        <div class="content">
+        <div class="header">
+            <span class="details-close">&times;</span>
+            <h2>Referal details</h2>
+        </div>
+        <div class="body">
+            <p>Details: {{referal.Details}}</p>
+            <p>Description: {{referal.Description}}</p>
+            <p>Date: {{referal.Date.strftime("%d-%m-%Y %H:%M")}}</p>
+        </div>
+        </div>
+    </div>
+{%  endfor %}
+
+{% endblock %}

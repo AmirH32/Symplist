@@ -1,0 +1,120 @@
+body{
+    color: black;
+}
+
+.container{
+    background-color: white;
+    width: 75%;
+    border-radius: 20px;
+    margin: 50px auto 0 auto;
+    padding: 20px;
+    display: flex;
+    height: fit-content;
+}
+
+.container-1{
+    width: 45%;
+}
+
+.container-2{
+    width: 45%;
+    margin-left: auto;
+}
+
+.Container-title{
+    text-align: center;
+    font-size: large;
+    margin-bottom: 10px;
+}
+
+.prescription-container, .referral-container{
+    height: 340px;
+    border: 3px solid grey;
+    overflow: auto;
+    overflow-x:hidden;
+}
+
+.row{
+    flex-wrap: wrap;
+    display: flex;
+    flex-direction: row;
+    border-bottom:  3px solid black;
+    padding-bottom: 5px;
+    font-size: small;
+    width: 100%;
+}
+
+.date {
+    text-align: right;
+    margin-left:50px;
+}
+
+button{
+    margin-left: 50px;
+    height: 20px;
+    margin-top: 12px;
+}
+
+/* The Modal (background) */
+.details{
+    display: none; /* Hidden by default */
+    position: fixed; /* Stay in place */
+    z-index: 1; /* Sit on top */
+    left: 0;
+    top: 0;
+    width: 100%; /* Full width */
+    height: 100%; /* Full height */
+    overflow: auto; /* Enable scroll if needed */
+    background-color: rgb(0,0,0); /* Fallback color */
+    background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+}
+  
+/* Modal Content/Box */
+.content{
+    background-color: #fefefe;
+    margin: 15% auto; /* 15% from the top and centered */
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%; /* Could be more or less, depending on screen size */
+    -webkit-animation-name: animatetop;
+    -webkit-animation-duration: 0.4s;
+    animation-name: animatetop;
+    animation-duration: 0.4s
+}
+
+.header {
+    padding: 2px 16px;
+    background-color: #4343eb;
+    color: white;
+}
+  
+.body {padding: 2px 16px;}
+  
+input{
+    width: 300px;
+}
+
+/* The Close Button */
+.details-close{
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+}
+  
+.details-close:hover, .details-close:focus{
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+/* Add Animation */
+@-webkit-keyframes animatetop {
+    from {top:-300px; opacity:0} 
+    to {top:0; opacity:1}
+}
+  
+@keyframes animatetop {
+    from {top:-300px; opacity:0}
+    to {top:0; opacity:1}
+}

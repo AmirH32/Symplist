@@ -1,0 +1,155 @@
+.container{
+    background-color: white;
+    width: 90%;
+    border-radius: 20px;
+    margin: 50px auto 0 auto;
+    padding: 20px;
+    display: flex;
+    height: fit-content;
+    color: black;
+    flex-wrap: wrap;
+}
+
+.patient-row{
+    flex-wrap: wrap;
+    display: flex;
+    flex-direction: row;
+    border-bottom:  3px solid black;
+    padding-bottom: 5px;
+    padding-top: 10px;
+    font-size: small;
+    width: 100%;
+}
+
+.form-row{
+    margin-top: 20px;
+}
+
+button{
+    margin-left:20px;
+    font-size: 11px;
+}
+
+.identifier{
+    color: red;
+    margin-left: 20px;
+}
+
+p{
+    margin: 0 0 0 10px;
+    width: fit-content;
+}
+
+/* The Modal (background) */
+.prescription, .referral {
+    display: none; /* Hidden by default */
+    position: fixed; /* Stay in place */
+    z-index: 1; /* Sit on top */
+    left: 0;
+    top: 0;
+    width: 100%; /* Full width */
+    height: 100%; /* Full height */
+    overflow: auto; /* Enable scroll if needed */
+    background-color: rgb(0,0,0); /* Fallback color */
+    background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+}
+  
+/* Modal Content/Box */
+.content{
+    background-color: #fefefe;
+    margin: 15% auto; /* 15% from the top and centered */
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%; /* Could be more or less, depending on screen size */
+    -webkit-animation-name: animatetop;
+    -webkit-animation-duration: 0.4s;
+    animation-name: animatetop;
+    animation-duration: 0.4s
+}
+
+/* Add Animation */
+@-webkit-keyframes animatetop {
+    from {top:-300px; opacity:0} 
+    to {top:0; opacity:1}
+}
+  
+@keyframes animatetop {
+    from {top:-300px; opacity:0}
+    to {top:0; opacity:1}
+}
+
+.header {
+    padding: 2px 16px;
+    background-color: #4343eb;
+    color: white;
+}
+  
+.body {padding: 2px 16px;}
+  
+input{
+    width: 300px;
+}
+
+/* The Close Button */
+.prescription-close, .referral-close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+}
+  
+.prescription-close:hover, .referral-close:hover, .prescription-close:focus, .referral-close:focus{
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.button {
+    margin-left: 20px;
+    background-color: #0095ff;
+    border: 1px solid transparent;
+    height: fit-content;
+    border-radius: 3px;
+    box-shadow: rgba(255, 255, 255, .4) 0 1px 0 0 inset;
+    box-sizing: border-box;
+    color: #fff;
+    cursor: pointer;
+    font-family: -apple-system,system-ui,"Segoe UI","Liberation Sans",sans-serif;
+    font-size: 13px;
+    font-weight: 400;
+    line-height: 1.15385;
+    outline: none;
+    padding: 7px .8em;
+    text-align: center;
+    text-decoration: none;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+    white-space: nowrap;
+    float: right;
+}
+
+.button:hover,
+.button:focus {
+  background-color: #07c;
+}
+
+.button:focus {
+  box-shadow: 0 0 0 4px rgba(0, 149, 255, .15);
+}
+
+.button:active {
+  background-color: #0064bd;
+  box-shadow: none;
+}
+
+button{
+    margin-top: 2%;
+}
+
+.buttons{
+    margin-left: auto;
+    margin-top:5px;
+    display: flex;
+    flex-wrap: wrap;
+}

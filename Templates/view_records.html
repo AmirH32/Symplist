@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+
+{% block head %}
+    <title>Records</title>
+    <link rel="stylesheet" href="{{url_for('static', filename = 'css/view_records.css')}}" />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.3/jquery.min.js"></script>   
+{% endblock %}
+
+{% block body %}
+<div class="container">
+    <div class="container-1">
+        <p class="Container-title">Prescriptions</p>
+        <div class="prescription-container">
+            {% for prescription in prescriptions %}
+                <div class="row">
+                    <div class="head">
+                        <p class="head-title">Prescription No.{{ prescription.PrescriptionID }}</p>
+                        <p class="date"> {{ prescription.Date.strftime("%d-%m-%Y %H:%M") }} </p>    
+                    </div>
+                    <div class="body">
+                        <p>Treatment: {{ prescription.Treatment}}</p> 
+                        <p>Dosage: {{ prescription.Dosage }}</p>
+                        <p>Frequency: {{ prescription.Frequency }}</p>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+    <div class="container-2">
+        <p class="Container-title">Referrals</p>
+        <div class="referral-container">
+            {% for referral in referrals %}
+            <div class="row">
+                <div class="head">
+                    <p class="head-title">Referral No.{{ referral.ReferralID }}</p>
+                    <p class="date"> {{ referral.Date.strftime("%d-%m-%Y %H:%M") }} </p>    
+                </div>
+                <div class="body">
+                    <p>Description: {{ referral.Description}}</p> 
+                    <p>Details: {{ referral.Details }}</p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

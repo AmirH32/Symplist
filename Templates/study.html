@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+
+{% block head %}
+    <title>Study</title>
+    <link rel="stylesheet" href="{{url_for('static', filename = 'css/studies.css')}}" />  
+{% endblock %}
+    
+{% block body %}
+<div class="study-container">
+    <h2>{{ study_content[0]['text'] }}</h2>
+    {% for paragraph in study_content %}
+    <!-- Iterates through each paragraph in a study -->
+        {% if loop.index0 != 0 %}
+        <!-- If it is not the title of the study -->
+        <p>
+            {{ paragraph['text'] }}
+        </p>
+        <!-- Display the study's paragraph -->
+        {% endif %}
+    {% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,154 @@
+{% extends 'base.html' %}
+
+{% block head %}
+    <title>Conversations</title>
+    <link rel="stylesheet" href="{{url_for('static', filename = 'css/messages.css')}}" />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.3/jquery.min.js"></script>  
+    <script>
+        $(document).ready(function(){
+            function take_conversation(element){
+                    if(confirm("Are you sure you want to take the conversation?")){
+                        // Checks that the user wants to take the conversation
+                        if (element.tagName == "DIV"){
+                            var conversation_id = element.children[0].id;
+                            // If the element clicked is a div, gets the conversation ID using the child elements ID
+                        }
+                        else{
+                            var conversation_id = element.id;
+                            // Otherwise the conversation ID is the element's ID
+                        }
+                        $.ajax({
+                            url:"/take_conversation",
+                            type:"POST",
+                            data:{conversation_id:conversation_id},
+                            success:function(){
+                                window.location.replace("/doctor_conversations") 
+                                // If the POST is successful, refreshes the page
+                            },
+                            error:function(XMLHttpRequest, textStatus, errorThrown){
+                                alert("Error encountered")
+                                // If an error is encountered, alert the user of this
+                            }
+                        });
+                        // Sends a POST request to /take_conversation carrying the conversation_id
+                    }
+                }
+            
+            function view_conversation(conversation_id){
+                let path = '/view_conversation/'+conversation_id
+                // Creates path 
+                window.location.replace(path)
+                // Directs to view conversation path so conversation can be viewed by user
+                $.ajax({
+                        url:"/view_conversation",
+                        type:"POST",
+                        success:function(){
+                        }
+                });
+                // Sends a POST request to '/view_conversation'
+            }
+
+            function end_conversation(conversation_id){
+                    if(confirm("Are you sure you want to end the conversation?")){
+                        // Checks that the user wants to end the conversation
+                        $.ajax({
+                            url:"/end_conversation",
+                            type:"POST",
+                            data:{conversation_id:conversation_id},
+                            success:function(){
+                                window.location.replace("/doctor_conversations") 
+                                // If the POST is successful, refresh the page
+                            },
+                            error:function(XMLHttpRequest, textStatus, errorThrown){
+                                alert("Error encountered")
+                                // If an error is encountered, alert the user of this
+                            }
+                        });
+                        // Sends a POST request to /end_conversation carrying the conversation_id
+                    }
+                }
+
+            $('.pending-conversation').click(function(conversation){
+                let element = conversation.target
+                // Gets the element clicked
+                take_conversation(element)
+                // If an element with the class 'pending-conversation' is clicked, save the element and pass it to the 'take_conversation' function
+            });
+
+            $('.active-doctor-conversation').click(function(conversation){
+                let element = conversation.target
+                // Gets the element clicked
+                let conversation_id = element.id
+                // Retrieves the id from the element
+                view_conversation(conversation_id)
+                // If an element with the class 'active-doctor-conversation' is clicked, pass the conversation_id to the 'view_conversation' function
+            })
+
+            $('.inactive-conversation').click(function(conversation){
+                let element = conversation.target
+                // Gets the element clicked
+                let conversation_id = element.id
+                // Retrieves the id from the element
+                view_conversation(conversation_id)
+                // If an element with the class 'inactive-conversation' is clicked, pass the conversation_id to the 'view_conversation' function
+            })
+
+            $("button").click(function(target){
+            let element = target.target
+            // Gets the element clicked
+            let conversation_id = element.id
+            // Retrieves the id from the element
+            end_conversation(conversation_id)
+            // If a button is clicked, pass the conversation_id to the 'end_conversation' function
+        })
+        });
+
+    </script>
+{% endblock %}
+
+{% block body %}
+    <div class="message-container">
+    {% if pending_conversations %}
+    <!-- Checks there are pending conversations -->
+        {% for pending_conversation in pending_conversations %}
+        <!-- Iterates through pending conversations -->
+            <div class="pending-conversation" id={{pending_conversation.ConversationID}}>
+                <p id={{pending_conversation.ConversationID}} class="pending">Pending Conversation No.{{loop.index}}</p>
+            </div>
+            <!-- Displays the pending conversation with its ID -->
+        {% endfor %}
+    {% endif %}
+
+    {% if active_conversations %}
+    <!-- Checks there are active conversations -->
+        {% for active_conversation in active_conversations %}
+        <!-- Iterates through active conversations -->
+            <div class="conversation-container">
+                <div class="active-doctor-conversation" id={{active_conversation.ConversationID}}>
+                    <p id={{active_conversation.ConversationID}} class="active">Active Conversation No.{{ active_conversations | count - loop.index0 }}</p>
+                </div>
+                <!-- Displays the active conversation with its ID -->
+                <button id={{active_conversation.ConversationID}}>End conversation</button>
+                <!-- Displays a button to end the conversation -->
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    {% if inactive_conversations %}
+    <!-- Checks there are active conversations -->
+        {% for inactive_conversation in inactive_conversations %}
+        <!-- Iterates through active conversations -->
+            <div class="inactive-conversation" id={{inactive_conversation.ConversationID}}>
+                <p id={{inactive_conversation.ConversationID}} class="inactive">Inactive Conversation No.{{ inactive_conversations | count - loop.index0 }}</p>
+            </div>
+            <!-- Displays the active conversation with its ID -->
+        {% endfor %}
+    {% endif %}
+
+    {% if no_conversations == True %}
+        <p>No conversations.</p>
+        <!-- If there are no conversations display this to the user -->
+    {% endif %}
+    
+    </div>
+{% endblock %}

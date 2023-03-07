@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+
+{% block head %}
+    <title>Login</title>
+    <link rel="stylesheet" href="{{url_for('static', filename = 'css/login.css')}}" /> 
+{% endblock %}
+
+{% block body %}
+    <div class="container">   
+        <span>
+            <p class="title
+            "><b>Login</b></p>
+        </span>
+        <div class="form-container">
+            <form action="#" method="POST">
+                    {{ login_form.hidden_tag()}}
+                <div class="row">
+                    {{ login_form.Email (class_='input-form')}}
+                </div>
+                <div class="row">
+                    {{ login_form.Password (class_='input-form')}}
+                </div>
+                <div class="row">
+                    {{ login_form.Submit }}
+                </div>            
+            </form>
+            <!-- Creates the register form -->
+        </div>
+        {% with messages = get_flashed_messages() %}
+        <!-- Gets flashed messages -->
+            {% if messages %}
+            <!-- Checks there are messages -->
+                {% for message in messages %}
+                <p class="Error">{{ message }}</p>
+                <!-- Iterates through messages and display the message -->
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        <div>
+            <h4>If you don't have an account, register here</h4>
+            <a class="button" href="register">Register</a>
+        </div>
+    </div>
+{% endblock %}

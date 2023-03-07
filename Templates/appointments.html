@@ -1,0 +1,197 @@
+{% extends 'base.html' %}
+{% block head %}
+    <title>Appointments</title>
+    <link rel="stylesheet" href="{{url_for('static', filename = 'css/calendar.css')}}" />  
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.1/index.global.min.js'></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.4.0/fullcalendar.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.18.1/moment.min.js"></script>
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+            var calendarEl = document.getElementById('calendar');
+            var calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'dayGridMonth',
+            nowIndicator: true,
+            now: $.now(),
+            editable:true,
+            eventResizableFromStart: true,
+            dayMaxEventRows:true,
+            headerToolbar: {
+            left: 'prev,next today',
+            center: 'title',
+            right: 'dayGridMonth,timeGridWeek,timeGridDay'
+            // Sets up a calendar with a now indicator (where now is set as the time now), with editable events, resizeable events and buttons for previous, next and today
+            },
+            events: [{% for appointment in pending_appointments %}{ id : '{{appointment.AppointmentID}}', 
+                title : 'Pending',
+                color : 'red',
+                start : '{{appointment.Start_Date}}', 
+                end : '{{appointment.End_Date}}',
+                display: 'block', }, 
+                //  Iterates the pending appointments and creates red events with the title 'pending'
+            {% endfor %}{% for appointment in booked_appointments %}{ id : '{{appointment.AppointmentID}}', 
+                // iterates through booked appointments
+                {% if current_user.UserID == appointment.DoctorID %}
+                    title : 'Booked with {{patient_info[loop.index0][1]}}.{{patient_info[loop.index0][0]}}',
+                    color : 'green'
+                // if the current user's ID matches the appointment's DoctorID, it shows the patients info and the colour is green. As that is one of the current doctor's appointments
+                {% else %}
+                    title : 'Unavailable - booked',
+                    color : 'grey'
+                // Otherwise it makes the event grey and titles it as 'unavailable'
+                {% endif %}, 
+                start : '{{appointment.Start_Date}}', 
+                end : '{{appointment.End_Date}}',
+                display: 'block', }, 
+            {% endfor %}],
+
+            eventClick: function(eventClickInfo ){
+                if(eventClickInfo.event.title == 'Pending'){
+                    // Checks the event has the title of 'Pending'
+                    if(confirm("Are you sure you want to take this appointment?")){
+                        // Checks the user confirms the action
+                        var appointment_id = eventClickInfo.event.id
+                        // Assings the events ID to appointment id as that is the appointment id
+                        $.ajax({
+                            url:"/take_appointment",
+                            type:"POST",
+                            data:{appointment_id:appointment_id},
+                            success:function(){
+                                alert("You have taken the appointment, Please resize the event");
+                                // If the POST is successful it alerts the user that the appointment is taken and they should resize the event from its default all-day size
+                                window.location.replace("/appointments") 
+                                // Refreshes the page 
+                            },
+                            error:function(XMLHttpRequest, textStatus, errorThrown){
+                                alert("Error encountered")
+                                // If an error is encountered, alert the user of this
+                            }
+                        })
+                        // Makes a POST to '/take_appointment' carrying the appointment_id
+                    }
+                } else if(eventClickInfo.event.title.includes("Booked with") && eventClickInfo.event.start >= (new Date().setHours(0,0,0,0))){
+                    // Otherwise checks if the title includes 'Booked with' - meaning its one of the doctor's booked appointments and it hasn't started
+                    if(confirm("Are you sure you want to cancel this appointment?")){
+                        // Checks the user confirms the action
+                        var appointment_id = eventClickInfo.event.id
+                        // Assings the events ID to appointment id as that is the appointment id 
+                        $.ajax({
+                            url:"/delete_appointment",
+                            type:"POST",
+                            data:{appointment_id:appointment_id},
+                            success:function(){
+                                alert("Appointment cancelled");
+                                // If the POST is successful, alert the user that the appointment has been cancelled
+                                window.location.replace("/appointments") 
+                                // Refresh the page
+                            },
+                            error:function(XMLHttpRequest, textStatus, errorThrown){
+                                alert("Error encountered")
+                                // If an error is encountered, alert the user of this
+                            }
+                        })
+                        // Makes a POST to '/take_appointment' carrying the appointment_id
+                    }
+                }
+            },
+
+            eventAllow: function(dropInfo, draggedEvent) {
+                if (draggedEvent.title.includes("Booked with")) {
+                    // If the dragged event has a tite containing 'Booked with', it allows the event to be resized and edited
+                    return true;
+                }
+                else {
+                    return false;
+                }
+            },
+
+            eventResize:function(eventResizeInfo){
+                if(eventResizeInfo.event.start >= $.now()){
+                    // Checks the event to be resized has a starting time greater or equal to now as if the appointment has already started it shouldnt be able to be edited
+                    if(confirm("Are you sure you want to resize the appointment?")){ 
+                        // Checks that the user confirms that they want to resize the appointment
+                        var start_date = eventResizeInfo.event.start
+                        var end_date = eventResizeInfo.event.end
+                        var appointment_id = eventResizeInfo.event.id
+                        // Assigns the start and end date as well as the appointment id
+                        $.ajax({
+                            url:"/update_appointment",
+                            type:"POST",
+                            data:{start_date:start_date, end_date:end_date, appointment_id:appointment_id},
+                            success:function()
+                            {
+                                alert("Appointment Updated Successfully")
+                                // If the POST was successful alerts the user that the appointment has been update successfully
+                            },
+                            error:function(XMLHttpRequest, textStatus, errorThrown){
+                                eventResizeInfo.revert()
+                                alert("Error encountered")
+                                // If an error is encountered, alert the user of this and resize the event for the user
+                            }
+                        })
+                        //  Sends a Post to the backend passing the start date, end date and appointment ID to '/update_appointment'
+                    } else {
+                        eventResizeInfo.revert();
+                        // If the user doesn't confirm that they want to resize the event, revert it to normal
+                    }
+                } else {
+                    eventResizeInfo.revert()
+                    alert("Can't resize an old appointment.")
+                    // If the time hasn't passed the event's start date, revert the event to normal
+                }
+            },
+
+            eventDrop:function(eventDropInfo){
+                if(eventDropInfo.event.start >= (new Date().setHours(0,0,0,0))){
+                    if(eventDropInfo.oldEvent.start >= (new Date())){
+                    // Checks the location the event is dropped to and the event's start date before it is moved is either on the present day or in the future
+                        if(confirm("Are you sure you want to move the appointment?")){ 
+                            // Checks the user confirms they want to move the appointment
+                            var start_date = eventDropInfo.event.start
+                            var end_date = eventDropInfo.event.end
+                            var appointment_id = eventDropInfo.event.id
+                            // Assigns the start and end date as well as the appointment id
+                            $.ajax({
+                                url:"/update_appointment",
+                                type:"POST",
+                                data:{start_date:start_date, end_date:end_date, appointment_id:appointment_id},
+                                success:function(data)
+                                {
+                                    alert("Appointment Updated Successfully")
+                                    // If the POST was successful alerts the user that the appointment has been update successfully
+                                },
+                                error:function(XMLHttpRequest, textStatus, errorThrown){
+                                    eventDropInfo.revert()
+                                    // If an error is encountered, alert the user of this
+                                    alert("Error encountered")
+                                }
+                            })
+                            //  Sends a Post to the backend passing the start date, end date and appointment ID to '/update_appointment'
+                        } else {
+                            eventDropInfo.revert();
+                            // If the user doesn't confirm that they want to change the event's time, revert it to normal
+                        }
+                    } else{
+                        alert("Appointments from the past cannot be moved.")
+                        eventDropInfo.revert();
+                        // If the location the event is dropped to is before the present day, revert it to normal
+                    }
+            } else{
+                alert("Appointments can't be moved into the past.")
+                eventDropInfo.revert();
+                // If the location the event is dropped to is before the present day, revert it to normal
+                }
+            }
+            });
+        calendar.render();
+        // Renders the calendar
+      });
+    </script>
+
+{% endblock %}
+
+{% block body %}
+    <div class="container">
+        <div id='calendar'></div>
+    </div>
+{% endblock %}

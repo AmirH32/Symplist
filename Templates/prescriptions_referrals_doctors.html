@@ -1,0 +1,121 @@
+{% extends 'base.html' %}
+
+{% block head %}
+    <title>Prescriptions and Referrals</title>
+    <link rel="stylesheet" href="{{url_for('static', filename = 'css/prescriptions_referrals.css')}}" /> 
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.3/jquery.min.js"></script>   
+    <script>
+        $(document).ready(function(){
+            
+            $('.prescription-button').click(function(){
+                // If element with class 'prescription-button' is clicked
+                $(".prescription").css("display","block");
+                // Display element with 'prescription' class
+                $("#PatientID").val($(this).attr('id'))
+                // Change the hidden input field's attribute to the button clicked's id
+            })
+
+            $('.referral-button').click(function(){
+                // If element with class 'referral-button' is clicked
+                $(".referral").css("display","block");
+                // Display element with 'referral' class
+                $("#Patientid").val($(this).attr('id'))
+                // Change the hidden input field's attribute to the button clicked's id
+            })
+            
+            $('.prescription-close').click(function(){
+                // If element with class 'prescription-close' is clicked
+                $(".prescription").css("display","none");
+                // Do not display element with 'prescription' class
+            })
+
+            $('.referral-close').click(function(){
+                $(".referral").css("display","none");
+                // If element with class 'referral-close' is clicked
+                // Do not display element with 'referral' class
+            })
+
+            window.onclick = function(event) {
+                // If the outside window is clicked
+                if (event.target == $(".prescription")[0]) {
+                    // If the element clicked outside of is the same as the first child element with the class 'prescription'
+                    $(".prescription").css("display","none");
+                    // Do not display element with 'prescription' class
+                } else if(event.target == $(".referral")[0]){
+                    // Otherwise if the element clicked outside of is the same as the first child element with the class 'referral'
+                    $(".referral").css("display","none");
+                    // Do not display element with 'referral' class
+                }
+            }
+        })
+        
+    </script>
+{% endblock %}
+
+{% block body %}
+    <div class='container'>
+        {% if patients %}
+        <!-- Checks if patients exists -->
+            {% for patient in patients %}
+            <!-- Iterates through each patient in patients -->
+                <div class='patient-row'>
+                    <p>{{ patient.Title }} {{ patient.FirstName }} {{ patient.Surname }}</p>
+                    <p class="identifier">Date of birth:</p> <p>{{ patient.Date_Of_Birth }}</p>
+                    <p class="identifier">Gender:</p> <p>{{ patient.Gender }}</p>
+                    <p class="identifier">Contact Number:</p> <p>{{patient.Contact_Number }}</p>
+                    <p class="identifier">Address:</p> <p>{{ patient.Address }}</p>
+                    <p class="identifier">General practice:</p> <p>{{ patient.General_Practice }}</p>
+                    <!-- Displays the Patient's title, first name, surname, date of birth, gender, contact number, address and general practice -->
+                    <div class="buttons">
+                        <button id="{{patient.UserID}}" class="prescription-button">Add prescription</button>
+                        <button id="{{patient.UserID}}" class="referral-button">Add referral</button>
+                        <a class="button" href="/view_records/{{patient.UserID}}">View records</a>
+                        <!-- Has three buttons, one to add prescriptions, add referrals and view records -->
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <p>You've had no appointments with any patients.</p>
+        {% endif %}
+    </div>
+
+    <div id="prescription" class="prescription">
+        <div class="content">
+          <div class="header">
+            <span class="prescription-close">&times;</span>
+            <h2>Prescription</h2>
+          </div>
+          <div class="body">
+            <form action="" method="POST">
+                {% for field in prescription_form %} 
+                <!-- Iterates through each field in the prescription_form -->
+                    <div class="form-row">
+                        {{ field }}
+                        <!-- Displays the field -->
+                    </div>
+                {% endfor %}
+            </form>
+          </div>
+        </div>
+    </div>
+
+    <div id="referral" class="referral">
+        <div class="content">
+            <div class="header">
+                <span class="referral-close">&times;</span>
+                <h2>Referral</h2>
+            </div>
+            <div class="body">
+                <form action="" method="POST">
+                    {% for field in referral_form %} 
+                    <!-- Iterates through each field in the referral_form form -->
+                    <div class="form-row">
+                        {{ field }}
+                        <!-- Displays the field -->
+                    </div>
+                    {% endfor %}
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock %}

@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+
+{% block head %}
+    <title>Conversations</title>
+    <link rel="stylesheet" href="{{url_for('static', filename = 'css/messages.css')}}" />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.3/jquery.min.js"></script>  
+    <script>
+    $(document).ready(function(){
+
+        function create_conversation(){
+            $.ajax({
+                url:"/create_conversation",
+                type:"POST",
+                success:function(){
+                    window.location.replace("/patient_conversations") 
+                    // If the POST is successful, refresh the page
+                }    
+            })
+            // Sends a POST request to '/create_conversation'
+        }
+
+        function view_conversation(conversation_id){
+            let path = '/view_conversation/'+conversation_id
+            // Creates path
+            window.location.replace(path)
+            // Directs to view conversation path so conversation can be viewed by user
+             $.ajax({
+                 url:"/view_conversation",
+                 type:"POST",
+                 success:function(){
+                 }
+             });
+             // Sends a POST request to '/view_conversation'
+        }
+
+        $("button").click(function(){
+            create_conversation()
+            // If a button is clicked, run the 'create_conversation' function
+        })
+
+        $('.active-patient-conversation').click(function(conversation){
+            // If the element clicked has the class '.active-patient-conversation'
+            let element = conversation.target
+            // Gets the element that was clicked
+            let conversation_id = element.id
+            // Gets the id of the element and assigns it to conversation_id
+            view_conversation(conversation_id)
+            // Runs the view_conversation function passing in conversation_id
+        })
+
+        $('.inactive-conversation').click(function(conversation){
+            // If the element clicked has the class '.inactive-conversation'
+            let element = conversation.target
+            // Gets the element that was clicked
+            let conversation_id = element.id
+            // Gets the id of the element and assigns it to conversation_id
+            view_conversation(conversation_id)
+            // Runs the view_conversation function passing in conversation_id
+        })
+    })
+    </script>
+{% endblock %}
+
+{% block body %}
+    <div class="message-container">
+        {% if pending_conversation %}
+        <!-- If pending_conversations exists -->
+            <p>Please wait until a doctor takes your conversation</p>
+            <!-- Output that a doctor needs to take their conversation -->
+            
+        {% elif active_conversation %}
+        <!-- Otherwise if active_conversation exists -->
+            <div class="active-patient-conversation"  id={{active_conversation.ConversationID}}>
+                <p id={{active_conversation.ConversationID}} class="active">Active Conversation </p>  
+            </div>
+            <!-- Display active_conversation with its ID -->
+        {% else %}
+            <button>Find a doctor to start a conversation</button>
+            <!-- Otherwise if there are no active or pending conversations, display a button to create a conversation -->
+        {% endif %}
+
+        {% if not inactive_conversations %}
+        {% else %}
+        <!-- Check if inactive_conversations exists -->
+            {% for inactive_conversation in inactive_conversations %}
+            <!-- Iterates through each inactive_conversation in inactive_conversations -->
+            <div class="inactive-conversation" id={{inactive_conversation.ConversationID}}>
+                <p id={{inactive_conversation.ConversationID}} class="inactive">Inactive Conversation No.{{ inactive_conversations | count - loop.index0}}</p>
+            </div>
+            <!-- Display inactive_conversation with its ID -->
+            {% endfor %}
+        {% endif %}
+    </div>
+{% endblock %}

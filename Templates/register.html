@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+
+{% block head %}
+    <title>Register</title>
+    <link rel="stylesheet" href="{{url_for('static', filename = 'css/register.css')}}" />
+{% endblock %}
+
+{% block body %}
+    <div class="container">
+        <div class="form-container">
+            <form action="#" method="POST">
+                {% for field in register_form %} 
+                <!-- Iterates through each field in register_form -->
+                    {% if field.type == "SubmitField" or field.type == "CSRFTokenField" %}
+                        <div class="row">
+                            <div class="col-75">
+                                <td>{{ field (class_='input-form')}}</td>
+                            </div> 
+                        </div>
+                        <!-- If the field is a submit or CRSF token field, display it without its label -->
+                    {% else %}
+                        <div class="row">
+                            <div class="col-75">
+                                <td>{{ field (class_='input-form')}}</td>
+                                <!-- Display the field -->
+                            </div> 
+                            <div class="col-25">
+                                {{ field.label }} {% if field.flags.required %}*{% endif %}
+                                <!-- Display the fields label. If the field has flags, put an asterix next to it -->
+                            </div>
+                        </div>
+                    {% endif %}
+                {% endfor %} 
+            </form>
+        </div>
+        {% with messages = get_flashed_messages() %}
+        <!-- Get flashed messages and store as 'messages' -->
+            {% if messages %}
+            <!-- If messages exists -->
+                <div class="messages">
+                    {% for message in messages %}
+                    <!-- Iterates through each message in messages -->
+                    <p class="Error">{{ message }}</p>
+                    <!-- Outputs the message -->
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+    </div>
+
+{% endblock %}
+

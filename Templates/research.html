@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+
+{% block head %}
+<title>Research</title>
+<link rel="stylesheet" href="{{url_for('static', filename = 'css/research.css')}}" />
+{% endblock %}
+
+{% block body %}
+<div class="container">
+    <div class="container-1">
+        <p class="Container-title">Condition Search</p>
+        <form action="" method="POST">
+            {{ condition_form.hidden_tag()}}
+            {{ condition_form.Condition_Name (class_='input-form')}}
+            {{ condition_form.Submit }}
+        </form>
+        <!-- Display the condition form -->
+        {% if corrected_condition %}
+        <!-- If corrected_condition exists -->
+                <p class="Suggestion">Did you mean <a href="./research?condtion={{corrected_condition}}">{{corrected_condition}}</a></p>
+                <!-- Display corrected condition with a link to the path with the corrected_condition embedded -->
+        {% endif %}
+        <div class="condition-container">
+            <div class="row-2">
+            {% if primary_names %}
+            <!-- Checks if primary_name exists -->
+                {% for name in primary_names  %}
+                <!-- Iterates through each name in primary_names -->
+                    <div class="row">
+                        <p>Primary name: {{name}}</p>
+                        <p>Consumer name: {{consumer_names[loop.index0]}}</p>
+                        <p>Find out more about {{name}} <a href={{condition_links[loop.index0]}}>here</a></p>
+                        <!-- Displays the condition's primary and consumer name as well as a link to find out more -->
+                    </div>
+                {% endfor %}
+
+            {% elif first_Condition_visit != True%}
+                <h3>No results</h3>
+            <!-- If it's not the first visit to the page and there is no data from the API, no results is returned -->
+            {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="container-2">
+        <p class="Container-title">Treatment Search</p>
+        <form action="" method="POST">
+            {{ treatment_form.hidden_tag()}}
+            {{ treatment_form.Treatment_Name (class_='input-form')}}
+            {{ treatment_form.Submit }}
+        </form>
+        {% if corrected_treatment %}
+                <p class="Suggestion">Did you mean <a href="./research?treatment={{corrected_treatment}}">{{corrected_treatment}}</a></p>
+                <!-- Display corrected treatment with a link to the path with the corrected_treatment embedded -->
+        {% endif %}
+        <div class="treatment-container">
+            <div class="row-2">
+            {% if treatment_data %}
+            <!-- Checks if treatment_data exists -->
+                {% for key, value in treatment_data.items() %}
+                <!-- Iterates through every key and value in treatment_data as a dictionary -->
+                    {% if key == 'Generic_Name' %}
+                        <p>Generic_Name: {{value}}}</p>
+                        <!-- If the key is 'Generic Name', display the generic name -->
+                    {% elif key == 'Substance_Name' %}
+                        <p>Substance Name: {{value}}</p>
+                        <!-- If the key is 'Substance Name', display the Substance name -->
+                    {% else %}
+                        <div class="row">
+                            <h3 class="Treatment-headings">{{key}}</h3>
+                            <p>{{value}}</p>
+                            <!-- Otherwise display the key and its appropriate value -->
+                        </div>
+                    {% endif %}
+                {% endfor %}
+
+            {% elif first_Treatment_visit != True%}
+                <h3>No results</h3>
+            <!-- If it's not the first visit to the page and there is no data from the API, no results is returned -->
+            {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

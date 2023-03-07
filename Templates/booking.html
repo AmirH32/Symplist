@@ -1,0 +1,129 @@
+{% extends 'base.html' %}
+{% block head %}
+    <title>Booking</title>
+    <link rel="stylesheet" href="{{url_for('static', filename = 'css/calendar.css')}}" />  
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.1/index.global.min.js'></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fullcalendar/3.4.0/fullcalendar.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.18.1/moment.min.js"></script>
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+            var calendarEl = document.getElementById('calendar');
+            var calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'dayGridMonth',
+            dayMaxEventRows:true,
+            nowIndicator: true,
+            now: $.now(),
+            headerToolbar: {
+            left: 'prev,next today',
+            center: 'title',
+            right: 'dayGridMonth,timeGridWeek,timeGridDay'
+            // Sets up the calendar and its format with buttons, a title and a Now indicator that gets the time right now
+            },
+            events: [{% for appointment in pending_appointments %}{ id : '{{appointment.AppointmentID}}', 
+                {% if current_user.UserID == appointment.PatientID %}
+                    title : 'Pending',
+                    color : 'orange'
+                {% else %}
+                    title : 'Unavailable - pending',
+                    color : 'red'
+                {% endif %}, 
+                start : '{{appointment.Start_Date}}', 
+                end : '{{appointment.End_Date}}', 
+                display: 'block',}, 
+            // Loops through pending appointments and if they are the user's it displays them in orange, otherwise it displays them as 'Unavailable - pending' in red
+            {% endfor %}{% for appointment in booked_appointments%}{ id : '{{appointment.AppointmentID}}',
+                {% if current_user.UserID == appointment.PatientID %}
+                    title : "Booked with {{doctor_info[loop.index0][1]}}.{{doctor_info[loop.index0][0]}}",
+                    color : 'green'
+                {% else %}
+                    title : 'Unavailable - booked',
+                    color : 'grey'
+                {% endif %}, 
+                start : '{{appointment.Start_Date}}', 
+                end : '{{appointment.End_Date}}', 
+                display: 'block',}, 
+            // Loops through the booked appointments and if they are the user's it displays them in green with the doctors title and surname, otherwise it displays them as 'Unavailable-booked' in grey
+            {% endfor %}],
+            selectable:true,
+            selectHelper:true,
+            selectOverlap:false,
+
+
+            dateClick: function(Info)
+            {
+                if(Info.date.setHours(0, 0, 0, 0) >= new Date().setHours(0, 0, 0, 0) ){
+                    // Checks the day clicked is either on the day or in the future
+                    if(confirm("Are you sure you want an appointment on "+Info.dateStr+"?")){
+                        // Checks the user wants an appointment on the date
+                        var date = Info.date
+                        // Assigns date as the day clicked's date
+                        $.ajax({
+                            url:"/add_appointment",
+                            type:"POST",
+                            data:{date:date},
+                            success:function(data)
+                            {
+                                alert("Added Successfully")
+                                // If the POST is successful, alert the user that it is successful
+                                window.location.replace("/booking")
+                                // Refresh the page
+                            },
+                            error:function(XMLHttpRequest, textStatus, errorThrown){
+                                alert("Error encountered")
+                                // If an error is encountered, alert the user of this
+                            }
+                        })
+                        // Passes the date to the backed using the POST method to '/add_appointment'
+                    }
+                } else {
+                    alert("Appointment can't be booked in the past.")
+                }
+            },
+
+            eventClick: function(eventClickInfo){
+                if((eventClickInfo.event.title=='Pending'||eventClickInfo.event.title.includes("Booked with")) && eventClickInfo.event.start >= (new Date().setHours(0,0,0,0))){
+                    // Checks the event has a title containing 'Pending' or 'Booked with' to validate that it is the user's appointments and the event hasn't already started
+                    if(confirm("Are you sure you want to cancel this appointment?")){
+                        // Checks that the user wants to cancel the event
+                        var appointment_id = eventClickInfo.event.id
+                        // Assigns the event's ID as appointment_id
+                        $.ajax({
+                            url:"/delete_appointment",
+                            type:"POST",
+                            data:{appointment_id:appointment_id},
+                            success:function(){
+                                alert("Appointment cancelled");
+                                // If the POST is successful, alert the user that the appointment has been cancelled
+                                window.location.replace("/booking") 
+                                // Refresh the page
+                            },
+                            error:function(XMLHttpRequest, textStatus, errorThrown){
+                                alert("Error encountered")
+                                // If an error is encountered, alert the user of this
+                            }
+                        })
+                        // Sends a POST request to '/delete_appointment' passing the appointment_id
+                    }
+                }
+            }
+            
+            });
+            calendar.render();
+            // Renders the calendar
+        });
+    </script>
+{% endblock %}
+{% block body %}
+    <div class="container">
+        <div id='calendar'></div>
+    </div>
+{% endblock %}
+
+
+
+
+
+
+
+

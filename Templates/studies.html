@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+
+{% block head %}
+    <title>Studies</title>
+    <link rel="stylesheet" href="{{url_for('static', filename = 'css/studies.css')}}" />  
+{% endblock %}
+    
+{% block body %}
+<div class="study-container">
+    <div class="search">
+        <form action="" method="POST">
+        {{ studies_form.hidden_tag()}}
+        {{ studies_form.Study_Topic(class_='input-bar')}}
+        {{ studies_form.Submit (class_='input-button')}}
+        </form>
+        <!-- Displays study form -->
+
+        {% if corrected_study %}
+        <!-- Checks if corrected_study exists -->
+        <p class="Suggestion">Did you mean <a href="./studies?study={{corrected_study}}">{{corrected_study}}</a></p>
+        <!-- Display corrected study with a link to the path with the corrected_study embedded -->
+        {% endif %}
+    </div>
+    {% if studies %}
+    <!-- Checks if studies exist -->
+        {% for study in studies %}
+        <!-- For each study in studies -->
+            <div class="study">
+                <a style="text-decoration: none; color: black;" href="./studies?pmcid={{study[1]}}">
+                    <h2>{{ study[0][0]['text'] }}</h2>
+                    <!-- Display the studie's title -->
+                    <p>
+                        {% for index in range (30)%}
+                            {{ study[0][1]['text'].split(' ')[index] }}
+                        {% endfor %}
+                        ...
+                    </p>
+                    <!-- Display the first 30 words of each study followed by '...' -->
+                </a>
+            </div>
+        {% endfor %}
+    {% elif first_visit != True %}
+    <h2>No Results</h2>
+    <!-- If it's not the first visit to the page and there is no data from the API, no results is returned -->
+    {% endif %}
+</div>
+{% endblock %}

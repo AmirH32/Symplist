@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+
+{% block head %}
+    <title>Messages</title>
+    <link rel="stylesheet" href="{{url_for('static', filename = 'css/messages.css')}}" />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.3/jquery.min.js"></script>  
+    <script>
+        $(document).ready(function(){
+
+            function delete_conversation(message_id){
+                if(confirm("Do you wish to delete the message?")){
+                    // Checks the user confirms that they want to delete the mssage
+                    $.ajax({
+                            url:"/delete_message",
+                            type:"POST",
+                            data:{message_id:message_id, conversation_id:{{conversation.ConversationID}}},
+                            success:function(){
+                                location.reload()
+                                // If the post is successful, refresh the page
+                            },
+                            error:function(XMLHttpRequest, textStatus, errorThrown){
+                                print(XMLH)
+                                alert("Error encountered")
+                                // If an error is encountered, alert the user of this
+                            }
+                    });
+                    // Sends a POST request to '/delete_message' carrying the message and conversation id
+                }
+            }
+
+            $('.message-sent').click(function(conversation){
+                // Runs when an element with the class 'message-sent' is clicked
+                let element = conversation.target
+                // Gets the element
+                let messageID = element.id
+                // Gets the message id through the elements id
+                delete_conversation(messageID)
+            })
+        });
+
+    </script>
+{% endblock %}
+
+{% block body %}
+<div class="message-container">
+    {% if messages %}
+    <!-- If messages exists -->
+        {% for message in messages%}
+        <!-- Iterates through each message in messages -->
+            {% if message.SenderID == current_user.UserID %}
+            <!-- Checks the message's senderID is the same as the current user's ID -->
+                <div class="message-sent" id={{message.MessageID}}>
+                    <!-- Uses class 'message-sent' to display sent messages differently -->
+                    <p class="content" id={{message.MessageID}}>
+                        {{ message.Content }}
+                        <!-- Displays message's content -->
+                    </p>
+                    
+                    {{ message.Date.strftime("%d-%m-%Y %H:%M") }}
+                    <!-- Displays the messages date and formats it as day, month, year Hour:Minute -->
+                    {{ sender_accounts[loop.index0].Title}} 
+                    {{ sender_accounts[loop.index0].Surname }}
+                    <!-- Uses the index to find the sender and then displays their title and surname -->
+                </div>
+            {% else %}
+                <div class="message-recieved">
+                    <!-- Otherwise use clase 'message-recieved' to display recieved messages differently -->
+                    <p class="content">
+                        {{ message.Content }}
+                        <!-- Displays message's content -->
+                    </p>
+
+                    {{ message.Date.strftime("%d-%m-%Y %H:%M") }}
+                    <!-- Displays the messages date and formats it as day, month, year Hour:Minute -->
+                    {{ sender_accounts[loop.index0].Title}} 
+                    {{ sender_accounts[loop.index0].Surname }}
+                    <!-- Uses the index to find the sender and then displays their title and surname -->
+                </div>
+            {% endif %}
+        {% endfor %}
+    {% endif %}
+
+    {% if conversation.Status != 'Inactive'%}
+        <form action="" method="POST">
+            {{ message_form.hidden_tag()}}
+            {{ message_form.Contents (class_='input-form')}}
+            {{ message_form.Submit }}
+        </form>
+    <!-- If the conversation doesn't have a status of 'Inactive', display a form to enter messages-->
+    {% endif %}
+</div>
+{% endblock %}

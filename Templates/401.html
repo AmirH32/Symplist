@@ -1,0 +1,13 @@
+<html>
+    <head>
+        <title>Error 401 page</title>
+        <link rel="stylesheet" href="{{url_for('static', filename = 'css/404.css')}}" />  
+    </head>
+</html>
+
+<div id="main">
+    <div class="fof">
+            <h1>Error 401 - Unauthorised access</h1>
+            <p><a class="button" href="{{ url_for('index') }}">Go Home</a></p>
+    </div>
+</div>
