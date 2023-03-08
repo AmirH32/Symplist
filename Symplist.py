@@ -51,8 +51,7 @@ with app.app_context():
 
 roles_users = db.Table('roles_users',
                         db.Column('user_id', db.Integer,
-                        db.ForeignKey('users.UserID'),
-                        unqiue = True),
+                        db.ForeignKey('users.UserID')),
                         db.Column('role_id', db.Integer,
                         db.ForeignKey('roles.RoleID'))
                         )
@@ -77,17 +76,13 @@ class Users(db.Model, UserMixin):
     def get_id(self):
         # Returns the user's ID
         return self.UserID
-    
-    def add_role(self, role_name):
-        roles = Roles.query.all()
-        # retrieves all the roles in the Role table
-        for role in roles:
-            # Iterates through the roles
-            if role_name == role.Role_Name:
-                # if the role name matches the name of the role of the user, it appends the role to the user by adding its ID to the user_roles table alongside the User's ID
-                self.roles.append(role)
-    
 
+    def add_role(self, role_name):
+        role = Roles.get_by_name(role_name)
+        if role:
+            # if the role exists it appends the role to the user by adding its ID to the user_roles table alongside the User's ID
+            self.roles.append(role)
+    
 
 class Roles(db.Model):
     RoleID = db.Column(db.Integer, primary_key=True, unique=True)
@@ -95,15 +90,13 @@ class Roles(db.Model):
 
     @staticmethod
     def get_by_name(role_name):
-        return Roles.query.filter_by(name=role_name).first()
+        return Roles.query.filter_by(Role_Name=role_name).first()
 
 
 class Appointments(db.Model):
     AppointmentID = db.Column(db.Integer, primary_key=True, nullable=False, unique=True)
     DoctorID = db.Column(db.Integer, db.ForeignKey('users.UserID'))
-    Doctor = relationship("Users", foreign_keys=[DoctorID], backref="Doctors")
     PatientID = db.Column(db.Integer, db.ForeignKey('users.UserID'), nullable = False)
-    Patient = relationship("Users", foreign_keys=[PatientID], backref="Patients")
     Start_Date = db.Column(db.DateTime(), nullable=False)
     End_Date = db.Column(db.DateTime(), nullable=False) 
 
@@ -168,10 +161,10 @@ class RegisterForm(FlaskForm):
     # Validate_email method raises an error if the email already exists in the database
 
     def __validate_email(self, email):
-        Existing_Email = Users.query.filter_by(Email=email.data).first()
+        existing_user_with_email = Users.query.filter_by(Email=email.data).first()
         # Queries User table for when its Email field is the same as the email entered
 
-        if Existing_Email:
+        if existing_user_with_email:
             flash("The email has already been registered.", category='Error')
             # if the Email exists in the User table, the user is notified that the email has been used
             return False
@@ -363,7 +356,7 @@ def add_to_database(record):
 
 def check_for_digits(string):
     digit_found = re.search("\d", string)
-    # Uses regular expression to search the string for any occurance of a digit
+    # Uses regular expression to search the string for any occurrence of a digit
     if digit_found == None:
         return False
         # If no digits are found return false
@@ -373,7 +366,7 @@ def check_for_digits(string):
 
 def check_for_letters(string):
     letter_found = re.search("[A-Z]", string)
-    # Uses regular expression to search the string for any occurance of a letter
+    # Uses regular expression to search the string for any occurrence of a letter
     if letter_found == None:
         return False
         # If no letters are found return false
@@ -542,10 +535,10 @@ def get_study_data(study_topic):
     # Turns the response into a string
     response_xml = ET.fromstring(response_xml_as_string)
     # Instantiates the xml element tree using the response string
-    test_id = response_xml.find('IdList')
+    id_list_tag = response_xml.find('IdList')
     # Searches the tree object for the IdList tag 
    
-    for id in test_id:
+    for id in id_list_tag:
         ids.append(id.text)
         # Iterates throught the IDs, appending them to a list of IDs
 
@@ -596,9 +589,11 @@ def validate_user_viewing_records(patient_id):
 
 def get_sender_accounts(messages):
     sender_accounts = []
+
     for message in messages:
         sender = Users.query.filter(Users.UserID == message.SenderID).first()
         sender_accounts.append(sender)
+        # Iterates through each message in the list of messages and retrieves the user whos userID matches the message's SenderID
     
     return sender_accounts
 
@@ -661,16 +656,7 @@ def page_not_found(e):
 
 @app.route('/')
 def index():
-    try:
-        user_id = get_current_id()
-        role = get_user_role(user_id)
-        # attemps to get the user ID and role  
-        
-    except:
-        role = None
-        # If the user ID or role can't be obtained the role is set to none
-
-    return render_template('index.html',role=role)
+    return render_template('index.html')
 
 
 @app.route('/login', methods=['POST','GET'])
@@ -753,7 +739,7 @@ def research():
         primary_names, consumer_names, condition_links = get_condition_info(condition)
         # Gets the primary name, consumer name and link for each condition
 
-        return render_template('research.html', treatment_form=treatment_form, condition_form=condition_form, primary_names=primary_names, consumer_names=consumer_names, condition_links=condition_links, corrected_condition=corrected_condition, first_Treatment_visit = True)
+        return render_template('research.html', treatment_form=treatment_form, condition_form=condition_form, primary_names=primary_names, consumer_names=consumer_names, condition_links=condition_links, corrected_condition=corrected_condition, first_treatment_visit = True)
     
     elif condition !=None:
         corrected_condition = autocorrect(condition)
@@ -766,7 +752,7 @@ def research():
         primary_names, consumer_names, condition_links = get_condition_info(condition)
         # Gets the primary name, consumer name and link for each condition
 
-        return render_template('research.html', treatment_form=treatment_form, condition_form=condition_form, primary_names=primary_names, consumer_names=consumer_names, condition_links=condition_links, corrected_condition=corrected_condition, first_Treatment_visit = True)
+        return render_template('research.html', treatment_form=treatment_form, condition_form=condition_form, primary_names=primary_names, consumer_names=consumer_names, condition_links=condition_links, corrected_condition=corrected_condition, first_treatment_visit = True)
 
 
     if treatment_form.validate_on_submit():
@@ -782,7 +768,7 @@ def research():
         treatment_data = get_treatment_info(treatment)
         # Gets the treatment_data for the treatment
 
-        return render_template('research.html', treatment_form=treatment_form, condition_form=condition_form, treatment_data = treatment_data, corrected_treatment = corrected_treatment, first_Condition_visit = True)
+        return render_template('research.html', treatment_form=treatment_form, condition_form=condition_form, treatment_data = treatment_data, corrected_treatment = corrected_treatment, first_condition_visit = True)
     
     elif treatment != None:
 
@@ -796,10 +782,10 @@ def research():
         treatment_data = get_treatment_info(treatment)
         # Gets the treatment_data for the treatment
 
-        return render_template('research.html', treatment_form=treatment_form, condition_form=condition_form, treatment_data = treatment_data, corrected_treatment = corrected_treatment, first_Condition_visit = True)
+        return render_template('research.html', treatment_form=treatment_form, condition_form=condition_form, treatment_data = treatment_data, corrected_treatment = corrected_treatment, first_condition_visit = True)
         
         
-    return render_template('research.html', treatment_form=treatment_form, condition_form=condition_form, first_Treatment_visit=True, first_Condition_visit = True)
+    return render_template('research.html', treatment_form=treatment_form, condition_form=condition_form, first_treatment_visit=True, first_condition_visit = True)
 
 
 @app.route("/booking", methods=['POST', 'GET'])
@@ -839,9 +825,9 @@ def delete_appointment():
         user_id = get_current_id()
         role = get_user_role(user_id)
         if role.Role_Name == 'Doctor':
-            return redirect(url_for('booking'))
-        else:
             return redirect(url_for('view_appointments'))
+        else:
+            return redirect(url_for('booking'))
 
 @app.route("/appointments") 
 @role_required(role_names=('Doctor'))
@@ -953,7 +939,7 @@ def create_conversation():
         # Creates a conversation with the Pending status and saves and commits it to the database
         return redirect(url_for('view_patient_conversations'))
 
-@app.route("/doctor_conversations", methods=['GET']) 
+@app.route("/doctor_conversations") 
 @role_required(role_names=('Doctor'))
 @login_required
 def view_doctor_conversations():
