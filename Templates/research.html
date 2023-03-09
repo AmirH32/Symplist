@@ -34,7 +34,7 @@
                     </div>
                 {% endfor %}
 
-            {% elif first_Condition_visit != True%}
+            {% elif first_condition_visit != True%}
                 <h3>No results</h3>
             <!-- If it's not the first visit to the page and there is no data from the API, no results is returned -->
             {% endif %}
@@ -59,7 +59,7 @@
                 {% for key, value in treatment_data.items() %}
                 <!-- Iterates through every key and value in treatment_data as a dictionary -->
                     {% if key == 'Generic_Name' %}
-                        <p>Generic_Name: {{value}}}</p>
+                        <p>Generic_Name: {{value}}</p>
                         <!-- If the key is 'Generic Name', display the generic name -->
                     {% elif key == 'Substance_Name' %}
                         <p>Substance Name: {{value}}</p>
@@ -73,7 +73,7 @@
                     {% endif %}
                 {% endfor %}
 
-            {% elif first_Treatment_visit != True%}
+            {% elif first_treatment_visit != True%}
                 <h3>No results</h3>
             <!-- If it's not the first visit to the page and there is no data from the API, no results is returned -->
             {% endif %}

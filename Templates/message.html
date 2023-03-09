@@ -7,7 +7,7 @@
     <script>
         $(document).ready(function(){
 
-            function delete_conversation(message_id){
+            function delete_message(message_id){
                 if(confirm("Do you wish to delete the message?")){
                     // Checks the user confirms that they want to delete the mssage
                     $.ajax({
@@ -34,7 +34,7 @@
                 // Gets the element
                 let messageID = element.id
                 // Gets the message id through the elements id
-                delete_conversation(messageID)
+                delete_message(messageID)
             })
         });
 
@@ -45,7 +45,7 @@
 <div class="message-container">
     {% if messages %}
     <!-- If messages exists -->
-        {% for message in messages%}
+        {% for message in messages %}
         <!-- Iterates through each message in messages -->
             {% if message.SenderID == current_user.UserID %}
             <!-- Checks the message's senderID is the same as the current user's ID -->
@@ -78,6 +78,8 @@
                 </div>
             {% endif %}
         {% endfor %}
+    {% else %}
+        <p>No messages</p>
     {% endif %}
 
     {% if conversation.Status != 'Inactive'%}

@@ -11,36 +11,44 @@
     <div class="container-1">
         <p class="Container-title">Prescriptions</p>
         <div class="prescription-container">
-            {% for prescription in prescriptions %}
-                <div class="row">
-                    <div class="head">
-                        <p class="head-title">Prescription No.{{ prescription.PrescriptionID }}</p>
-                        <p class="date"> {{ prescription.Date.strftime("%d-%m-%Y %H:%M") }} </p>    
+            {% if prescriptions%}
+                {% for prescription in prescriptions %}
+                    <div class="row">
+                        <div class="head">
+                            <p class="head-title">Prescription No.{{ prescriptions | count - loop.index0 }}</p>
+                            <p class="date"> {{ prescription.Date.strftime("%d-%m-%Y %H:%M") }} </p>    
+                        </div>
+                        <div class="body">
+                            <p>Treatment: {{ prescription.Treatment}}</p> 
+                            <p>Dosage: {{ prescription.Dosage }}</p>
+                            <p>Frequency: {{ prescription.Frequency }}</p>
+                        </div>
                     </div>
-                    <div class="body">
-                        <p>Treatment: {{ prescription.Treatment}}</p> 
-                        <p>Dosage: {{ prescription.Dosage }}</p>
-                        <p>Frequency: {{ prescription.Frequency }}</p>
-                    </div>
-                </div>
-            {% endfor %}
+                {% endfor %}
+            {% else %}
+                <p>No prescriptions.</p>
+            {% endif %}
         </div>
     </div>
     <div class="container-2">
         <p class="Container-title">Referrals</p>
         <div class="referral-container">
-            {% for referral in referrals %}
-            <div class="row">
-                <div class="head">
-                    <p class="head-title">Referral No.{{ referral.ReferralID }}</p>
-                    <p class="date"> {{ referral.Date.strftime("%d-%m-%Y %H:%M") }} </p>    
+            {% if referrals %}
+                {% for referral in referrals %}
+                <div class="row">
+                    <div class="head">
+                        <p class="head-title">Referral No.{{ referrals | count - loop.index0 }}</p>
+                        <p class="date"> {{ referral.Date.strftime("%d-%m-%Y %H:%M") }} </p>    
+                    </div>
+                    <div class="body">
+                        <p>Description: {{ referral.Description}}</p> 
+                        <p>Details: {{ referral.Details }}</p>
+                    </div>
                 </div>
-                <div class="body">
-                    <p>Description: {{ referral.Description}}</p> 
-                    <p>Details: {{ referral.Details }}</p>
-                </div>
-            </div>
-            {% endfor %}
+                {% endfor %}
+            {% else %}
+                <p>No Referrals.</p>
+            {% endif %}
         </div>
     </div>
 </div>

@@ -145,7 +145,7 @@ class RegisterForm(FlaskForm):
     Email = EmailField(label='Email', validators=[InputRequired("Enter your email address."), Length(max=256)], render_kw={"placeholder" : "Email"})
     Password = PasswordField(label='Password', validators=[InputRequired("Enter your password."),Length(min=8,max=128)], render_kw={"placeholder" : "Password"})
     Confirm_Password = PasswordField(label='Confirmed Password', validators=[InputRequired("Confirm your password."),Length(min=8,max=128)], render_kw={"placeholder" : "Confirmed Password"})
-    Gender = SelectField(choices=[('M', 'Male'),('F', 'Female'),('O', 'Other')],validate_choice=True,render_kw={"placeholder" : "Gender"})
+    Gender = SelectField(choices=[('M', 'Male'),('F', 'Female'),('O', 'Other')],validate_choice=True,validators=[InputRequired("Pick a gender.")],render_kw={"placeholder" : "Gender"})
     First_Name = StringField(label='First Name', validators=[InputRequired("Enter your first name."),Length(max=32)], render_kw={"placeholder" : "First Name"})
     Surname = StringField(label='Surname', validators=[InputRequired("Enter your surname."),Length(max=32)], render_kw={"placeholder" : "Surname"})
     Contact_Number = StringField(label='Contact Number', validators=[InputRequired("Enter your contact number."),Length(min=11,max=11)], render_kw={"placeholder" : "Contact Number"})
@@ -154,7 +154,7 @@ class RegisterForm(FlaskForm):
     Postcode =StringField(label='Postcode',validators=[InputRequired("Enter your postcode."), Length(max=64)],render_kw={"placeholder" : "Postcode"}) 
     Address =StringField(label='Address',validators=[InputRequired("Enter your address"), Length(max=64)],render_kw={"placeholder" : "Address"}) 
     General_Practice =StringField(label='General Practice',validators=[InputRequired("Enter your General Practice."), Length(max=64)],render_kw={"placeholder" : "General Practice"})
-    Account_Type =SelectField(label='Account Type',choices=[('Doctor','Doctor'),('Patient','Patient')],validate_choice=True,render_kw={"placeholder" : "Account Type"})
+    Account_Type =SelectField(label='Account Type',choices=[('Doctor','Doctor'),('Patient','Patient')],validators=[InputRequired("Pick an account type.")],validate_choice=True,render_kw={"placeholder" : "Account Type"})
     Submit = SubmitField("Register")
 
 
@@ -565,14 +565,15 @@ def get_study_data(study_topic):
     return studies
     # returns the studies
 
-def validate_user_conversation(user_id, conversationID):
-    conversation = Conversations.query.filter_by(ConversationID=conversationID).first()
+def validate_user_conversation(user_id, conversation_id):
+    conversation = Conversations.query.filter_by(ConversationID=conversation_id).first()
     # Retrieves the first conversation record in the conversation table where the ID matches the parameter
-    if user_id == conversation.PatientID or user_id == conversation.DoctorID:
-        # If the userID is either the patient's ID or the doctor's ID then return true
-        return True
-    else:
-        return False
+    if conversation != None:
+        if (user_id == conversation.PatientID or user_id == conversation.DoctorID) and conversation.Status != 'Pending':
+            # If the userID is either the patient's ID or the doctor's ID then return true
+            return True
+        else:
+            return False
 
 def validate_user_viewing_records(patient_id):
     # Converts the patient ID into an integer datatype
@@ -644,15 +645,16 @@ def inject_role():
 
     return dict(role=role)
 
+
+@app.errorhandler(401)
+def access_denied(e):
+    # Renders the 404.html if a 404 error is encountered
+    return render_template('401.html'), 401
+
 @app.errorhandler(404)
 def page_not_found(e):
     # Renders the 404.html if a 404 error is encountered
     return render_template('404.html'), 404
-
-@app.errorhandler(401)
-def page_not_found(e):
-    # Renders the 404.html if a 404 error is encountered
-    return render_template('401.html'), 401
 
 @app.route('/')
 def index():
@@ -915,7 +917,7 @@ def studies():
 
 @app.route("/patient_conversations", methods=['GET']) 
 @login_required
-# @role_required(role_names=('Patient'))
+@role_required(role_names=('Patient'))
 def view_patient_conversations():
     user_id = get_current_id()
     inactive_conversations = Conversations.query.filter(Conversations.PatientID == user_id).filter(Conversations.Status == 'Inactive').order_by(Conversations.ConversationID.desc()).all()
@@ -1026,7 +1028,8 @@ def view_conversation(conversation_id):
         # Retrieves all the sender_account for each message using the get_sender_accounts function
             
         return render_template('message.html', messages=messages, sender_accounts=sender_accounts, message_form=message_form, conversation=conversation)
-    return render_template('404.html'), 404
+    return render_template('404.html', 404)
+
 
 @app.route("/delete_message", methods=['POST']) 
 @login_required
@@ -1112,7 +1115,8 @@ def view_records(patient_id):
         # Retrieves all prescriptions from the Prescriptions table where the PatientID matches the patient_id and orders them by date descending so that the newest prescriptions appear first
         return render_template("view_records1.html", referrals=referrals, prescriptions=prescriptions, patient_id=patient_id)
     
-    return render_template("404.html")
+    else:
+        return render_template('404.html', 404)
 
 if __name__=='__main__':
     app.run(host="0.0.0.0", debug=True)

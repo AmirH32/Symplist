@@ -39,13 +39,6 @@
                 // Creates path 
                 window.location.replace(path)
                 // Directs to view conversation path so conversation can be viewed by user
-                $.ajax({
-                        url:"/view_conversation",
-                        type:"POST",
-                        success:function(){
-                        }
-                });
-                // Sends a POST request to '/view_conversation'
             }
 
             function end_conversation(conversation_id){
