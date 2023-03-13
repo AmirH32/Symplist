@@ -449,16 +449,19 @@ def get_treatment_data(response):
 
     if len(KEY_FIELDS) == len(QUERIES):
         # As long as there are an equal amount KEY_FIELDS to QUERIES, the code is run
-        treatment_data['Generic_Name'] = response['results'][0]['openfda']['generic_name'][0]
-        treatment_data['Substance_Name'] = response['results'][0]['openfda']['substance_name'][0]
-        # Gets and stores the generic and substance name seperately since they are located at a different part of the JSON response
-        for index in range(0, len(KEY_FIELDS)):
-            try:
-                treatment_data[KEY_FIELDS[index]] = response['results'][0][QUERIES[index]][0]
-                # Tries to append the key to treatment_data with the appropriate value in the JSON response
-            except:
-                # If this is not possible, i.e. the response lacks that key, the loop is passed
-                pass
+        try:
+            treatment_data['Generic_Name'] = response['results'][0]['openfda']['generic_name'][0]
+            treatment_data['Substance_Name'] = response['results'][0]['openfda']['substance_name'][0]
+            # Gets and stores the generic and substance name seperately since they are located at a different part of the JSON response
+            for index in range(0, len(KEY_FIELDS)):
+                try:
+                    treatment_data[KEY_FIELDS[index]] = response['results'][0][QUERIES[index]][0]
+                    # Tries to append the key to treatment_data with the appropriate value in the JSON response
+                except:
+                    # If this is not possible, i.e. the response lacks that key, the loop is passed
+                    pass
+        except:
+            treatment_data = None
     else:
         treatment_data = None
         # If there is not an equal amount of KEY_FIELDS to QUERIES, treatment data is returned as None
@@ -559,8 +562,7 @@ def get_study_data(study_topic):
             studies.append([response['documents'][0]['passages'], pmcid])
             # appends the passages to the study
         except:
-            print(f'no pmcid for {id}')
-            # If no pmcid is found or there is no response regarding a pmcid, it prints no pmcid
+            pass
 
     return studies
     # returns the studies
@@ -579,10 +581,12 @@ def validate_user_viewing_records(patient_id):
     # Converts the patient ID into an integer datatype
     user_id = get_current_id()
     # Gets the current user's ID
+    role = get_user_role(user_id)
+    # Gets user's role
     appointments = Appointments.query.filter_by(DoctorID=user_id).filter_by(PatientID=patient_id).filter(Appointments.Start_Date < datetime.now()).first()
     # Gets the first appointment where the Doctor ID is the same as user_id and the PatientID is the same as patient_id and the start date was before the date now
     # This makes sure that if the user accessing the page is a doctor, they have atleast one former appointment with the patient
-    if patient_id == user_id or appointments != None:
+    if (patient_id == user_id and role.Role_Name != 'Doctor')  or appointments != None:
         # Checks that there is atleast one appointment or that the patient's ID matches that of the user ID preventing other users accessing each other prescriptions and referrals
         return True
     else:
@@ -718,13 +722,11 @@ def logout():
     # Once logged out, the user is redirected to the index page
 
 
-
 @app.route("/research", methods=['POST', 'GET'])
 def research():
     # Attempts to get the condition encoded in the url
     condition = request.args.get('condition')
     treatment = request.args.get('treatment')
-
     # Instantiates the forms
     condition_form = ConditionForm()
     treatment_form = TreatmentForm()
@@ -743,7 +745,7 @@ def research():
 
         return render_template('research.html', treatment_form=treatment_form, condition_form=condition_form, primary_names=primary_names, consumer_names=consumer_names, condition_links=condition_links, corrected_condition=corrected_condition, first_treatment_visit = True)
     
-    elif condition !=None:
+    elif condition !=None and treatment_form.validate_on_submit() == False:
         corrected_condition = autocorrect(condition)
         # Auto corrects the condition
 
@@ -756,11 +758,10 @@ def research():
 
         return render_template('research.html', treatment_form=treatment_form, condition_form=condition_form, primary_names=primary_names, consumer_names=consumer_names, condition_links=condition_links, corrected_condition=corrected_condition, first_treatment_visit = True)
 
-
     if treatment_form.validate_on_submit():
-
         treatment = treatment_form.Treatment_Name.data
         corrected_treatment = autocorrect(treatment)
+        print(corrected_treatment)
         # Auto corrects the treatment
         
         if corrected_treatment == treatment:
@@ -772,7 +773,7 @@ def research():
 
         return render_template('research.html', treatment_form=treatment_form, condition_form=condition_form, treatment_data = treatment_data, corrected_treatment = corrected_treatment, first_condition_visit = True)
     
-    elif treatment != None:
+    elif treatment != None and condition_form.validate_on_submit() == False:
 
         corrected_treatment = autocorrect(treatment)
         # Auto corrects the treatment
@@ -907,11 +908,14 @@ def studies():
         return render_template('studies.html', corrected_study = corrected_study, studies_form = studies_form, studies=studies)
 
     elif pmcid != None:
-        response = requests.get(f"https://www.ncbi.nlm.nih.gov/research/bionlp/RESTful/pmcoa.cgi/BioC_json/{pmcid}/unicode").json()
-        # If there is a pmcid in the url, it gets the data associated with the pmcid
-        study_content = response['documents'][0]['passages']
-        # It gets the passages from the json response 
-        return render_template('study.html',study_content=study_content)
+        try:
+            response = requests.get(f"https://www.ncbi.nlm.nih.gov/research/bionlp/RESTful/pmcoa.cgi/BioC_json/{pmcid}/unicode").json()
+            # If there is a pmcid in the url, it gets the data associated with the pmcid
+            study_content = response['documents'][0]['passages']
+            # It gets the passages from the json response 
+            return render_template('study.html',study_content=study_content)
+        except:
+            abort(404)
 
     return render_template('studies.html',studies_form = studies_form, first_visit=True)
 
@@ -1028,7 +1032,7 @@ def view_conversation(conversation_id):
         # Retrieves all the sender_account for each message using the get_sender_accounts function
             
         return render_template('message.html', messages=messages, sender_accounts=sender_accounts, message_form=message_form, conversation=conversation)
-    return render_template('404.html', 404)
+    abort(401)
 
 
 @app.route("/delete_message", methods=['POST']) 
@@ -1089,7 +1093,7 @@ def prescriptions_referrals_doctors():
     elif referral_form.validate_on_submit():
         # If the referral form is valid and has been submitted
         details = referral_form.Details.data
-        description = referral_form.Details.data
+        description = referral_form.Description.data
         patient_id = referral_form.Patientid.data
         # Gets the referral form's data
 
@@ -1116,7 +1120,7 @@ def view_records(patient_id):
         return render_template("view_records1.html", referrals=referrals, prescriptions=prescriptions, patient_id=patient_id)
     
     else:
-        return render_template('404.html', 404)
+        abort(404)
 
 if __name__=='__main__':
     app.run(host="0.0.0.0", debug=True)

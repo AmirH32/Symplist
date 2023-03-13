@@ -46,7 +46,7 @@
             {% endfor %}],
 
             eventClick: function(eventClickInfo ){
-                if(eventClickInfo.event.title == 'Pending'){
+                if(eventClickInfo.event.title == 'Pending' && eventClickInfo.event.start >= (new Date().setHours(0,0,0,0))){
                     // Checks the event has the title of 'Pending'
                     if(confirm("Are you sure you want to take this appointment?")){
                         // Checks the user confirms the action
