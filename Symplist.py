@@ -761,7 +761,6 @@ def research():
     if treatment_form.validate_on_submit():
         treatment = treatment_form.Treatment_Name.data
         corrected_treatment = autocorrect(treatment)
-        print(corrected_treatment)
         # Auto corrects the treatment
         
         if corrected_treatment == treatment:
