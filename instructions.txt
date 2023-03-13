@@ -1,4 +1,4 @@
-1). You must download and install all the packages and dependencies from requirements to run this code.
+1). You must download and install all the packages and dependencies from requirements to run this code found in 'requirements.txt'
 2). First run db_creator.py to create the database for the web app.
-3). Once the database has been created,  the web app can be run using "$ flask --app Symplist run" or "$ python Symplist.py"
-4). Then ctrl + click to click the link provided below to see the web app on your default browser.
+3). Once the database has been created,  the web app can be run using "$ flask --app Symplist run" or "$ python Symplist.py" from the command line or executing the python file directly.
+4). Then ctrl + click to click the link provided below to see the web app on your default browser. The web app can also be visited using the 'localhost:5000' URL
