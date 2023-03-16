@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+
+{% block head %}
+    <title>Records</title>
+    <link rel="stylesheet" href="{{url_for('static', filename = 'css/view_records.css')}}" />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.3/jquery.min.js"></script>   
+{% endblock %}
+
+{% block body %}
+<div class="container">
+    <div class="container-1">
+        <p class="Container-title">Prescriptions</p>
+        <div class="prescription-container">
+            {% if prescriptions%}
+            <!--  If there are prescriptions returned from the backend -->
+                {% for prescription in prescriptions %}
+                <!-- Iterates through each prescription in the list of presecriptions -->
+                    <div class="row">
+                        <div class="head">
+                            <p class="head-title">Prescription No.{{ prescriptions | count - loop.index0 }}</p>
+                            <p class="date"> {{ prescription.Date.strftime("%d-%m-%Y %H:%M") }} </p>    
+                        </div>
+                        <div class="body">
+                            <p>Treatment: {{ prescription.Treatment}}</p> 
+                            <p>Dosage: {{ prescription.Dosage }}</p>
+                            <p>Frequency: {{ prescription.Frequency }}</p>
+                        </div>
+                        <!-- Outputs information about the presription -->
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p>No prescriptions.</p>
+                <!-- If no prescriptions are returned from the backend 'No prescriptions.' is displayed -->
+            {% endif %}
+        </div>
+    </div>
+    <div class="container-2">
+        <p class="Container-title">Referrals</p>
+        <div class="referral-container">
+            {% if referrals %}
+            <!-- Checks if there are referrals returned by the backend -->
+                {% for referral in referrals %}
+                <!-- Iterates through each referral -->
+                <div class="row">
+                    <div class="head">
+                        <p class="head-title">Referral No.{{ referrals | count - loop.index0 }}</p>
+                        <p class="date"> {{ referral.Date.strftime("%d-%m-%Y %H:%M") }} </p>    
+                    </div>
+                    <div class="body">
+                        <p>Description: {{ referral.Description}}</p> 
+                        <p>Details: {{ referral.Details }}</p>
+                    </div>
+                    <!-- Outputs referral information -->
+                </div>
+                {% endfor %}
+            {% else %}
+                <p>No Referrals.</p>
+                <!-- If no referrals are returned from the backend 'No referrals.' is displayed -->
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

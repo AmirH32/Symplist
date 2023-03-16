@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+
+{% block head %}
+    <title>Records</title>
+    <link rel="stylesheet" href="{{url_for('static', filename = 'css/view_records1.css')}}" />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.3/jquery.min.js"></script>   
+    <script>
+        $(document).ready(function(){
+
+            $('.referral-button').click(function(){
+                // Checks if the element with the class 'referral-button' is clicked
+                $(".referral-"+ $(this).attr('id')).css("display","block"); 
+                // Finds the referral using the dynamically set class
+            })
+
+            $('.prescription-button').click(function(){
+                // Checks if the element with the class 'prescription-button' is clicked
+                $("."+ $(this).attr('id')).css("display","block");  
+                // Finds the prescription using the dynamically set class
+            })
+
+            $('.details-close').click(function(){
+                $(".details").css("display","none");
+                // closes the element with the 'details-close' class
+            })
+
+
+            window.onclick = function(event) {
+                // If the outside window is clicked
+                if (event.target.className.includes("details r")) {
+                    // Checks if the element clicked has a class name that includes 'details r'
+                    $(event.target).css("display","none")
+                    // Sets the display to none
+                } else if(event.target.className.includes("details")){
+                    // Checks if the element clicked has a class name that includes 'details'
+                    $(event.target).css("display","none")
+                    // Sets the display to none
+                }
+            }
+        })
+    </script>
+{% endblock %}
+
+{% block body %}
+<div class="container">
+    <div class="container-1">
+        <p class="Container-title">Prescriptions</p>
+        <div class="prescription-container">
+            {% if prescriptions %}
+                {% for prescription in prescriptions %}
+                <!-- Iterates over each prescription -->
+                    <div class="row">
+                        <p>Prescription No.{{ prescriptions | count - loop.index0 }}</p>
+                        <p class="date"> {{ prescription.Date.strftime("%d-%m-%Y %H:%M") }} </p>
+                        <button class="prescription-button" id="{{prescription.PrescriptionID}}">View Details</button>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p>No prescriptions.</p>
+            <!-- If no prescriptions are found it displays that there are no prescriptions -->
+            {% endif %}
+        </div>
+    </div>
+    <div class="container-2">
+        <p class="Container-title">Referals</p>
+        <div class="referral-container">
+            {% if referrals %}
+                {% for referral in referrals %}
+                <!-- Iterates over each prescription -->
+                    <div class="row">
+                        <p>Referal No.{{ referrals | count - loop.index0 }}</p>
+                        <p class="date"> {{ referral.Date.strftime("%d-%m-%Y %H:%M") }} </p>
+                        <button class="referral-button" id="{{referral.ReferralID}}">View Details</button>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p>No Referrals.</p>
+                <!-- If no prescriptions are found it displays that there are no referral -->
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% for prescription in prescriptions %}
+<!-- Iterates through each field in the prescription_form -->
+    <div class="details {{ prescription.PrescriptionID }}">
+        <!-- Sets the class dynamically using the prescriptions ID -->
+        <div class="content">
+        <div class="header">
+            <span class="details-close">&times;</span>
+            <h2>Prescription details</h2>
+        </div>
+        <div class="body">
+            <p>Treatment: {{prescription.Treatment}}</p>
+            <p>Dosage: {{prescription.Dosage}}</p>
+            <p>Frequency: {{prescription.Frequency}}</p>
+            <p>Date: {{prescription.Date.strftime("%d-%m-%Y %H:%M")}}</p>
+            <!-- Displays the fields -->
+        </div>
+        </div>
+    </div>
+{%  endfor %}
+
+{% for referral in referrals %}
+<!-- Iterates through each field in the prescription_form -->
+    <div class="details referral-{{ referral.ReferralID }}">
+        <!-- Sets the class dynamically using the prescriptions ID -->
+        <div class="content">
+        <div class="header">
+            <span class="details-close">&times;</span>
+            <h2>Referal details</h2>
+        </div>
+        <div class="body">
+            <p>Details: {{referral.Details}}</p>
+            <p>Description: {{referral.Description}}</p>
+            <p>Date: {{referral.Date.strftime("%d-%m-%Y %H:%M")}}</p>
+            <!-- Displays the fields -->
+        </div>
+        </div>
+    </div>
+{%  endfor %}
+
+{% endblock %}
