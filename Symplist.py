@@ -529,29 +529,14 @@ def check_appointment_general_practice(all_appointments):
     
 
 def get_study_data(study_topic):
-    ids = []
     studies = []
     
-    response = requests.get(f"https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed&term=science[journal]+AND+{study_topic}")
-    # Sends request to API, querying the study topic to get the ID's of studies that match the query
-    response_xml_as_string = response.content
-    # Turns the response into a string
-    response_xml = ET.fromstring(response_xml_as_string)
-    # Instantiates the xml element tree using the response string
-    id_list_tag = response_xml.find('IdList')
-    # Searches the tree object for the IdList tag 
-   
-    for id in id_list_tag:
-        ids.append(id.text)
-        # Iterates throught the IDs, appending them to a list of IDs
+    ids = get_study_ids(study_topic)
+    # Gets the id's associated with the study using the 'get_study_ids' function
 
-    for id in ids:
-        response = requests.get(f"https://www.ncbi.nlm.nih.gov/pmc/utils/idconv/v1.0?tool=my_tool&email=amirhassanali2610@gmail.com.com&ids={id}")
-        # Sends a request to an API that converts the ID into a PMCID 
-        response_xml_as_string = response.content
-        # Turns the response into a string
-        response_xml = ET.fromstring(response_xml_as_string)
-        # Instantiates the xml element tree using the response string
+    for id in ids:  
+        response_xml = convert_study_PMID_to_PMCID(id)
+        # Gets the response using the 'convert_study_PMID_to_PMCID' function
         time.sleep(1)
         # Sleeps for 1 second to prevent sending too many requests too quickly to the server
         try:
@@ -566,6 +551,35 @@ def get_study_data(study_topic):
 
     return studies
     # returns the studies
+
+def get_study_ids(study_topic):
+    ids = []
+    
+    response = requests.get(f"https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed&term=science[journal]+AND+{study_topic}")
+    # Sends request to API, querying the study topic to get the ID's of studies that match the query
+    response_xml_as_string = response.content
+    # Turns the response into a string
+    response_xml = ET.fromstring(response_xml_as_string)
+    # Instantiates the xml element tree using the response string
+    id_list_tag = response_xml.find('IdList')
+    # Searches the tree object for the IdList tag 
+   
+    for id in id_list_tag:
+        ids.append(id.text)
+        # Iterates throught the IDs, appending them to a list of IDs
+    
+    return ids
+
+def convert_study_PMID_to_PMCID(id):
+    response = requests.get(f"https://www.ncbi.nlm.nih.gov/pmc/utils/idconv/v1.0?tool=my_tool&email=amirhassanali2610@gmail.com.com&ids={id}")
+    # Sends a request to an API that converts the ID into a PMCID 
+    response_xml_as_string = response.content
+    # Turns the response into a string
+    response_xml = ET.fromstring(response_xml_as_string)
+    # Instantiates the xml element tree using the response string
+    return response_xml
+
+
 
 def validate_user_conversation(user_id, conversation_id):
     conversation = Conversations.query.filter_by(ConversationID=conversation_id).first()
@@ -1122,4 +1136,4 @@ def view_records(patient_id):
         abort(404)
 
 if __name__=='__main__':
-    app.run(debug=True)
+    app.run(host="0.0.0.0", debug=True)
